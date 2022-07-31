@@ -1,0 +1,144 @@
+{{.LTStr}}template{{.GTStr}}
+  <slideout :title="pageTitle" ref="popover" :actions="actions" @closed="$router.push({ name: '{{.TableNamePascal}}List' })">
+    <form v-if="record" @keyup.enter="save">{{ range $i, $col := .Columns}}{{ if not (eq $col.ControlType "") }}<!--
+-->
+      <form-field class="mt-4" :validation="validation" @changed="validate" for="{{$col.NameCamelCase}}" label="{{$col.Label}}"><!--
+FIELD START
+
+TEXT
+-->{{ if eq $col.ControlType "text" }}
+        <o-input label="{{$col.Label}}" name="{{$col.NameCamelCase}}" type="text" v-model="record.{{$col.NameCamelCase}}" /><!--
+-->{{ end }}<!--
+
+TEXTAREA
+-->{{ if eq $col.ControlType "textarea" }}
+        <o-input label="{{$col.Label}}" name="{{$col.NameCamelCase}}" type="text" v-model="record.{{$col.NameCamelCase}}" /><!--
+-->{{ end }}<!--
+
+DATETIME
+-->{{ if eq $col.ControlType "datetime" }}
+        <date-picker label="{{$col.Label}}" name="{{$col.NameCamelCase}}" type="datetime" v-model="record.{{$col.NameCamelCase}}" /><!--
+-->{{ end }}<!--
+
+NUMBER
+-->{{ if eq $col.ControlType "number" }}
+        <o-input label="{{$col.Label}}" name="{{$col.NameCamelCase}}" type="number" v-model="record.{{$col.NameCamelCase}}" /><!--
+-->{{ end }}<!--
+
+RICHTEXT
+-->{{ if eq $col.ControlType "richtext" }}
+        <rich-text name="{{$col.NameCamelCase}}" v-model="record.{{$col.NameCamelCase}}" /><!--
+-->{{ end }}<!--
+
+IMAGE
+-->{{ if eq $col.ControlType "image" }}
+        <image-upload name="{{$col.NameCamelCase}}" v-model="record.{{$col.NameCamelCase}}" /><!--
+-->{{ end }}<!--
+
+SELECT
+-->{{ if eq $col.ControlType "select" }}
+          <select name="{{$col.Name}}" v-model="record.{{$col.Name}}"><!--
+          -->{{ range $j, $enumValue := $col.EnumValues}}
+            <option value="{{$enumValue}}">{{$enumValue}}</option><!--
+          -->{{end}}
+          </select><!--
+-->{{ end }}<!--
+
+FIELD END
+-->
+      </form-field>{{ end }}{{end}}
+    </form>
+    <loading :on="['Load{{.TableNameCamelPlural}}']" />
+  </slideout>
+{{.LTStr}}/template{{.GTStr}}
+
+{{.LTStr}}script lang="ts" setup{{.GTStr}}
+import api from '@/api'
+import { {{.TableNamePascal}} } from '@/api/pb/{{.TableNameCamel}}.pb'
+import { Validation } from '@/utils/validate'
+import Slideout from '@nerdynz/componenty/src/components/Popover/Slideout.vue'
+import { computed, onMounted, ref, Ref } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+
+const route = useRoute()
+const router = useRouter()
+
+const isNew = computed(() ={{.GTStr}} {
+  return !route.params?.ulid
+})
+
+const pageTitle = computed(() ={{.GTStr}} {
+  return `${isNew.value ? 'Create' : 'Edit'} {{.TableNamePascal}}`
+})
+
+async function validate(fieldName = '') {
+  validation.value = await api.{{.TableNameCamel}}.validate(record.value!, validation.value, fieldName)
+}
+
+const isValid = computed(() ={{.GTStr}} {
+  return Object.keys(validation).length === 0
+})
+
+let popover = ref{{.LTStr}}InstanceType{{.LTStr}}typeof Slideout{{.GTStr}} | null{{.GTStr}}(null)
+let record: Ref{{.LTStr}}{{.TableNamePascal}} | null{{.GTStr}} = ref(null)
+
+async function load() {
+  record.value = null
+  if (route.params?.ulid) {
+    // EDIT
+    record.value = await api.{{.TableNameCamel}}.load{{.TableNamePascal}}({
+      ulid: route.params?.ulid as string,
+    })
+  } else {
+    record.value = api.{{.TableNameCamel}}.create{{.TableNamePascal}}()
+  }
+}
+
+let validation: Ref{{.LTStr}}Validation{{.GTStr}} = ref({
+  isValid: false
+})
+
+const actions = computed(() ={{.GTStr}} {
+  return [
+    {
+      name: isNew.value ? 'Create' : 'Save',
+      action: async () ={{.GTStr}} {
+        let saved = await save()
+        if (saved) {
+          popover.value!.close()
+        }
+      },
+    },
+    {
+      name: 'Cancel',
+      class: 'is-light',
+      action: () ={{.GTStr}} {
+        popover.value!.close()
+      },
+    },
+    {
+      name: 'Delete',
+      class: 'is-danger is-right',
+      action: () ={{.GTStr}} {
+        // this.$api.{{.TableNameCamel}}.delete(this.{{.TableNameCamel}}Ulid)
+      },
+    },
+  ]
+})
+
+async function save(): Promise{{.LTStr}}boolean{{.GTStr}} {
+  await validate()
+  if (isValid.value) {
+    let {{.TableNameCamel}} = await api.{{.TableNameCamel}}.save{{.TableNamePascal}}(record.value!)
+    record.value = {{.TableNameCamel}}
+    router.replace({ name: '{{.TableNamePascal}}Edit', params: { ulid: {{.TableNameCamel}}.{{.TableNameCamel}}Ulid } })
+    return true
+  }
+  return false
+}
+
+onMounted(() ={{.GTStr}} {
+  load()
+})
+
+{{.LTStr}}/script{{.GTStr}}

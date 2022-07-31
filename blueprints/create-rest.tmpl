@@ -1,0 +1,195 @@
+package actions
+
+import (
+	"net/http"
+	"github.com/nerdynz/datastore"
+	flw "github.com/nerdynz/flow"
+	"github.com/nerdynz/skeleton/rest/models"
+)
+
+{{ if false }}
+// New{{.TableNamePascal}} Route
+func New{{.TableNamePascal}}(w http.ResponseWriter, req *http.Request, flow *flw.Flow, store *datastore.Datastore) {
+	siteULID, err := flow.SiteULID()
+	if err != nil {
+		flow.ErrorJSON(http.StatusInternalServerError, "Invalid Site", err)
+		return
+	}
+	{{.TableNameCamel}}Helper := models.{{.TableNamePascal}}Helper()
+	{{.TableNameCamel}} := {{.TableNameCamel}}Helper.New(siteULID)
+	flow.JSON(http.StatusOK, {{.TableNameCamel}})
+}
+{{ end }}
+// Create{{.TableNamePascal}} Route
+func Create{{.TableNamePascal}}(w http.ResponseWriter, req *http.Request, flow *flw.Flow, store *datastore.Datastore) {
+	siteULID, err := flow.SiteULID()
+	if err != nil {
+		flow.ErrorJSON(http.StatusInternalServerError, "Invalid Site", err)
+		return
+	}
+	{{.TableNameCamel}}Helper := models.{{.TableNamePascal}}Helper()
+	{{.TableNameCamel}}, err := {{.TableNameCamel}}Helper.FromRequest(siteULID, req)
+	if err != nil {
+		flow.ErrorJSON(http.StatusInternalServerError, "Failed to create {{.TableNameCamel}} record", err)
+		return
+	}
+	err = {{.TableNameCamel}}Helper.Save(siteULID,{{.TableNameCamel}})
+	if err != nil {
+		flow.ErrorJSON(http.StatusInternalServerError, "Failed to create {{.TableNameCamel}} record", err)
+		return
+	}
+	flow.JSON(http.StatusOK, {{.TableNameCamel}})
+}
+
+// Retrieve{{.TableNamePascal}} Route
+func Retrieve{{.TableNamePascal}}(w http.ResponseWriter, req *http.Request, flow *flw.Flow, store *datastore.Datastore) {
+	siteULID, err := flow.SiteULID()
+	if err != nil {
+		flow.ErrorJSON(http.StatusInternalServerError, "Invalid Site", err)
+		return
+	}
+	if flow.URLParam("{{.TableNameCamel}}ULID") == "" {
+		Retrieve{{.TableNamePluralPascal}}(w, req, flow, store)
+		return
+	}
+
+	{{.TableNameCamel}}ULID, err := flow.URLULIDParam("{{.TableNameCamel}}ULID")
+	if err != nil {
+		flow.ErrorJSON(http.StatusInternalServerError, "Invalid {{.TableNameCamel}}ULID", err)
+		return
+	}
+
+	{{.TableNameCamel}}Helper := models.{{.TableNamePascal}}Helper()
+	{{.TableNameCamel}}, err := {{.TableNameCamel}}Helper.Load(siteULID,{{.TableNameCamel}}ULID)
+	if err != nil {
+		flow.ErrorJSON(http.StatusInternalServerError, "Failed to retrieve {{.TableNamePascal}} record", err)
+		return
+	}
+
+	flow.JSON(http.StatusOK, {{.TableNameCamel}})
+}
+
+// Retrieve{{.TableNamePluralPascal}} Route
+func Retrieve{{.TableNamePluralPascal}}(w http.ResponseWriter, req *http.Request, flow *flw.Flow, store *datastore.Datastore) {
+	siteULID, err := flow.SiteULID()
+	if err != nil {
+		flow.ErrorJSON(http.StatusInternalServerError, "Invalid Site", err)
+		return
+	}
+	{{.TableNameCamel}}Helper := models.{{.TableNamePascal}}Helper()
+	{{.TableNamePluralCamel}}, err := {{.TableNameCamel}}Helper.All(siteULID)
+
+	if err != nil {
+		flow.ErrorJSON(http.StatusInternalServerError, "Failed to retrieve {{.TableNamePascal}} records", err)
+		return
+	}
+
+	flow.JSON(http.StatusOK, {{.TableNamePluralCamel}})
+}
+
+// Paged{{.TableNamePluralPascal}} Route
+func Paged{{.TableNamePluralPascal}}(w http.ResponseWriter, req *http.Request, flow *flw.Flow, store *datastore.Datastore) {
+	siteULID, err := flow.SiteULID()
+	if err != nil {
+		flow.ErrorJSON(http.StatusInternalServerError, "Invalid Site", err)
+		return
+	}
+	{{.TableNameCamel}}Helper := models.{{.TableNamePascal}}Helper()
+	pageNum := flow.URLIntParamWithDefault("pagenum", 1)
+	limit := flow.URLIntParamWithDefault("limit", 10)
+	sort := flow.URLParam("sort")
+	direction := flow.URLParam("direction")
+	search := flow.URLParam("search")
+
+
+	data, err := {{.TableNameCamel}}Helper.PagedBy(siteULID, pageNum, limit, sort, direction, search)
+	if err != nil {
+		flow.ErrorJSON(http.StatusInternalServerError, "Unabled to get paged {{.TableNamePascal}} data", err)
+		return
+	}
+	flow.JSON(http.StatusOK, data)
+}
+
+// Update{{.TableNamePascal}} Route
+func Update{{.TableNamePascal}}(w http.ResponseWriter, req *http.Request, flow *flw.Flow, store *datastore.Datastore) {
+	siteULID, err := flow.SiteULID()
+	if err != nil {
+		flow.ErrorJSON(http.StatusInternalServerError, "Invalid Site", err)
+		return
+	}
+	{{.TableNameCamel}}Helper := models.{{.TableNamePascal}}Helper()
+	{{.TableNameCamel}}, err := {{.TableNameCamel}}Helper.FromRequest(siteULID,  req)
+	if err != nil {
+		flow.ErrorJSON(http.StatusInternalServerError, "Failed to load {{.TableNamePascal}} record for update", err)
+		return
+	}
+
+	// save and validate
+	err = {{.TableNameCamel}}Helper.Save(siteULID, {{.TableNameCamel}})
+	// other type of error
+	if err != nil {
+		flow.ErrorJSON(http.StatusInternalServerError, "Failed to save updated {{.TableNamePascal}} record", err)
+		return
+	}
+
+	flow.JSON(http.StatusOK, {{.TableNameCamel}})
+}
+
+// Delete{{.TableNamePascal}} Route
+func Delete{{.TableNamePascal}}(w http.ResponseWriter, req *http.Request, flow *flw.Flow, store *datastore.Datastore) {
+	siteULID, err := flow.SiteULID()
+	if err != nil {
+		flow.ErrorJSON(http.StatusInternalServerError, "Invalid Site", err)
+		return
+	}
+	{{.TableNameCamel}}Helper := models.{{.TableNamePascal}}Helper()
+
+	{{.TableNameCamel}}ULID, err := flow.URLULIDParam("{{.TableNameCamel}}ULID")
+	if err != nil {
+		flow.ErrorJSON(http.StatusInternalServerError, "Invalid {{.TableNameCamel}}ULID", err)
+		return
+	}
+
+	isDeleted, err := {{.TableNameCamel}}Helper.Delete(siteULID, {{.TableNameCamel}}ULID)
+	if err != nil {
+		flow.ErrorJSON(http.StatusInternalServerError,"Failed to remove the {{.TableNamePascal}} record", err)
+		return
+	}
+	flow.JSON(http.StatusOK, isDeleted)
+}
+
+{{ if .HasSort }}
+// Sort{{.TableNamePascal}} Route
+func Sort{{.TableNamePascal}}(w http.ResponseWriter, req *http.Request, flow *flw.Flow, store *datastore.Datastore) {
+	siteULID, err := flow.SiteULID()
+	if err != nil {
+		flow.ErrorJSON(http.StatusInternalServerError, "Invalid Site", err)
+		return
+	}
+	var sort models.{{.TableNamePluralPascal}}
+	decoder := json.NewDecoder( req.Body)
+	err := decoder.Decode(&sort)
+	if err != nil {
+		flow.ErrorJSON(http.StatusInternalServerError, "", err)
+		return
+	}
+
+	err = models.{{.TableNamePascal}}Helper().SaveMany(siteULID, sort)
+	if err != nil {
+		flow.ErrorJSON(http.StatusInternalServerError, "Failed to update sort position", err)
+		return
+	}
+
+	flow.JSON(http.StatusOK, sort)
+}
+{{end}}
+
+	//r.GET("/:api/v1/{{.TableNameLower}}/new", actions.New{{.TableNamePascal}}, security.Disallow)
+	//r.PST("/:api/v1/{{.TableNameLower}}/create", actions.Create{{.TableNamePascal}}, security.Disallow)
+	//r.GET("/:api/v1/{{.TableNameLower}}/retrieve", actions.Retrieve{{.TableNamePluralPascal}}, security.Disallow)
+	//r.GET("/:api/v1/{{.TableNameLower}}/retrieve/:{{.TableNameCamel}}ULID", actions.Retrieve{{.TableNamePascal}}, security.Disallow)
+	//r.GET("/:api/v1/{{.TableNameLower}}/paged/:sort/:direction/limit/:limit/pagenum/:pagenum", actions.Paged{{.TableNamePluralPascal}}, security.Disallow)
+	//r.PUT("/:api/v1/{{.TableNameLower}}/update/:{{.TableNameCamel}}ULID", actions.Update{{.TableNamePascal}}, security.Disallow)
+	//r.DEL("/:api/v1/{{.TableNameLower}}/delete/:{{.TableNameCamel}}ULID", actions.Delete{{.TableNamePascal}}, security.Disallow)
+	//{{ if .HasSort }}r.PUT("/:api/v1/{{.TableNameLower}}/sort", actions.Sort{{.TableNamePascal}}, security.Disallow){{end}}
+	

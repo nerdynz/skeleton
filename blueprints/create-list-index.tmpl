@@ -1,0 +1,11 @@
+<template>
+  {{.LTStr}}{{.TableNameKebab}}-list /{{.GTStr}}
+</template>
+{{.LTStr}}script{{.GTStr}}
+import {{ .TableNamePascal }}List from './{{.TableNameCamel}}List.vue'
+export default {
+  components: {
+    {{.TableNamePascal}}List
+  }
+}
+{{.LTStr}}/script{{.GTStr}}

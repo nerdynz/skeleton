@@ -1,0 +1,38 @@
+syntax = "proto3";
+
+package skeleton;
+option go_package = "github.com/nerdynz/skeleton/rpc/person";
+
+import "base.proto";
+
+service PersonRPC {
+	rpc LoadPerson(skeleton.Lookup) returns (Person);
+	rpc SavePerson(Person) returns (Person);
+	rpc PagedPeople(skeleton.PagedInfo) returns (PeoplePaged);
+	rpc DeletePerson(skeleton.Lookup) returns (skeleton.Deleted);
+}
+
+message Person {
+	string person_ulid = 1; // @gotags: db:"person_ulid"
+	string site_ulid = 2; // @gotags: db:"site_ulid"
+	string date_created = 3; // @gotags: db:"date_created"
+	string date_modified = 4; // @gotags: db:"date_modified"
+	string name = 5; // @gotags: db:"name"
+	string username = 6; // @gotags: db:"username"
+	string email = 7; // @gotags: db:"email"
+	string phone = 8; // @gotags: db:"phone"
+	string role = 9; // @gotags: db:"role"
+	string initials = 10; // @gotags: db:"initials"
+	string password = 11; // @gotags: db:"password"
+	
+	
+}
+
+message People {
+	repeated Person people = 1;
+}
+
+message PeoplePaged {
+	skeleton.PagedInfo pagedInfo = 1;
+	repeated Person records = 2;
+}

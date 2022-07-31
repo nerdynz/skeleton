@@ -1,0 +1,27 @@
+.is-full-vh {
+  height: 100vh;
+}
+
+.is-full-vw {
+  height: 100vh;
+}
+
+.is-fullwidth {
+  width: 100%;
+}
+
+.is-fullheight {
+  height: 100%;
+}
+
+.panel.is-shadowless {
+  border: 1px solid $grey-lighter;
+}
+
+.card.is-shadowless {
+  border: 1px solid $grey-lighter;
+}
+
+.card > .table {
+  border-radius: $card-radius;
+}

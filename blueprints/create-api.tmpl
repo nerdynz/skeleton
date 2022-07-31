@@ -1,0 +1,27 @@
+import { useUserAccessStore } from '@/store/userAccess'
+import validate, { Validation } from '@/utils/validate'
+import { ulid } from 'ulid'
+import { {{.TableNamePascal}}, Delete{{.TableNamePascal}}, Load{{.TableNamePascal}}, Paged{{.TableNamePluralPascal}}, Save{{.TableNamePascal}} } from './pb/{{.TableNameCamel}}.pb'
+
+const default{{.TableNamePascal}}Validation = {
+  siteUlid: { presence: { allowEmpty: false } },
+  {{.TableNameCamel}}Ulid: { presence: { allowEmpty: false } },
+}
+
+const {{.TableNameCamel}}Api = {
+  create{{.TableNamePascal}}: () => {
+    return {
+      {{.TableNameCamel}}Ulid: ulid(),
+      siteUlid: useUserAccessStore().siteUlid,
+    } as {{.TableNamePascal}}
+  },
+  save{{.TableNamePascal}}: Save{{.TableNamePascal}},
+  paged{{.TableNamePluralPascal}}: Paged{{.TableNamePluralPascal}},
+  load{{.TableNamePascal}}: Load{{.TableNamePascal}},
+  delete{{.TableNamePascal}}: Delete{{.TableNamePascal}},
+  validate: (record: {{.TableNamePascal}} | null, validation: Validation | null, fieldName: string = '', validationDefinition?: any) => {
+    validationDefinition = validationDefinition || default{{.TableNamePascal}}Validation
+    return validate(record, validation, validationDefinition, fieldName)
+  },
+}
+export default {{.TableNameCamel}}Api

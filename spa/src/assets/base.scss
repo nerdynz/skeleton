@@ -1,0 +1,24 @@
+@import 'variables';
+@import 'utility';
+@import 'bulma/bulma';
+@import '@oruga-ui/theme-bulma/dist/scss/bulma';
+
+.title,
+.subtitle,
+.label {
+  font-family: $header-family;
+}
+
+.page {
+  margin-left: $sidebar-width;
+  padding: 1.25rem;
+}
+
+
+.button.is-small {
+  padding: 0.5em 0.75em 0.5em 0.75em;
+  .icon:first-child:not(:last-child) {
+    margin-left: calc(-0.35em - 1px);
+    margin-right: 0.15em;
+  }
+}

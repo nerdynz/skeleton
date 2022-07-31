@@ -1,0 +1,15 @@
+DROP TRIGGER IF EXISTS {{.Data.TableName}}_insert_trigger On {{.Data.TableName}};
+DROP FUNCTION IF EXISTS {{.Data.TableName}}_search_trigger();
+
+CREATE FUNCTION {{.Data.TableName}}_search_trigger() RETURNS trigger AS $$
+begin
+  new.tsv :=
+    {{range $index, $field := .Data.Fields}}
+    setweight(to_tsvector(new.{{$field.FieldName}}), '{{$field.FieldPriority}}') ||
+    {{end}}
+  return new;
+end
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER {{.Data.TableName}}_insert_trigger BEFORE INSERT OR UPDATE
+    ON {{.Data.TableName}} FOR EACH ROW EXECUTE PROCEDURE {{.Data.TableName}}_search_trigger();

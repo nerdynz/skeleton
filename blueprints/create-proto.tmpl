@@ -1,0 +1,29 @@
+syntax = "proto3";
+
+package skeleton;
+option go_package = "github.com/nerdynz/skeleton/rpc/{{.TableNameCamel}}";
+
+import "base.proto";
+
+service {{.TableNamePascal}}RPC {
+	rpc Load{{.TableNamePascal}}(skeleton.Lookup) returns ({{.TableNamePascal}});
+	rpc Save{{.TableNamePascal}}({{.TableNamePascal}}) returns ({{.TableNamePascal}});
+	rpc Paged{{.TableNamePluralPascal}}(skeleton.PagedInfo) returns ({{.TableNamePluralPascal}}Paged);
+	rpc Delete{{.TableNamePascal}}(skeleton.Lookup) returns (skeleton.Deleted);
+}
+
+message {{.TableNamePascal}} {
+	{{range $index, $column := .Columns}}{{$column.ProtoType}} {{$column.ColumnNameSnake}} = {{nextIndex $index}}; // @gotags: db:"{{$column.ColumnNameSnake}}"
+	{{end}}
+	{{range $index, $child := .Children}} //repeated {{$child.TableName}} {{$child.TableNamePluralCamel}}
+	{{end}}
+}
+
+message {{.TableNamePluralPascal}} {
+	repeated {{.TableNamePascal}} {{.TableNamePluralCamel}} = 1;
+}
+
+message {{.TableNamePluralPascal}}Paged {
+	skeleton.PagedInfo pagedInfo = 1;
+	repeated {{.TableNamePascal}} records = 2;
+}

@@ -1,0 +1,28 @@
+syntax = "proto3";
+package skeleton;
+option go_package = "github.com/nerdynz/skeleton/rpc/base";
+message Empty {
+}
+
+message Lookup {
+	string ulid = 1;
+}
+
+message Deleted {
+	bool is_deleted = 1;
+}
+
+message PagedInfo {
+	int32 page_number = 1;
+	int32 limit = 2;
+	string order_by = 3;
+	enum Direction {
+    NONE = 0;
+    ASC = 1;
+    DESC = 2;
+  }
+  Direction direction = 4;
+	int32 total = 5;
+	string search = 6;
+}
+

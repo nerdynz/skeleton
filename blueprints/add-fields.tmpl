@@ -1,0 +1,16 @@
+{{$tableName := .Data.TableName}}
+{{range $field := .Data.Fields}} 
+{{ if eq $field.FieldType "numeric"}}
+ALTER TABLE "{{$tableName}}" ADD COLUMN "{{$field.FieldName}}" {{$field.FieldType}} DEFAULT {{$field.FieldDefault}}; 
+--UPDATE "{{$tableName}}" SET "{{$field.FieldName}}" = {{$field.FieldDefault}} where "{{$field.FieldName}}" is null;
+{{end}}
+{{ if eq $field.FieldType "integer"}}
+ALTER TABLE "{{$tableName}}" ADD COLUMN "{{$field.FieldName}}" {{$field.FieldType}} DEFAULT {{$field.FieldDefault}}; 
+--UPDATE "{{$tableName}}" SET "{{$field.FieldName}}" = {{$field.FieldDefault}} where "{{$field.FieldName}}" is null;
+{{end}}
+{{ if eq $field.FieldType "text"}}
+ALTER TABLE "{{$tableName}}" ADD COLUMN "{{$field.FieldName}}" {{$field.FieldType}} DEFAULT '{{$field.FieldDefault}}'; 
+--UPDATE "{{$tableName}}" SET "{{$field.FieldName}}" =  '{{$field.FieldDefault}}' where "{{$field.FieldName}}" is null;
+{{end}}
+{{end}}
+

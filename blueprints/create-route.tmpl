@@ -1,0 +1,30 @@
+const {{.TableNameCamel}}Route =  {
+  name: '{{.TableNamePascal}}List',
+  path: '/{{.TableNamePlural}}',
+  meta: {
+    title: '{{.TableNameTitle}}s',
+    icon: 'fad-heart',
+    inSidebar: true
+  },
+  component: () => import('../views/{{.TableNamePlural}}/{{.TableNamePascal}}List.vue'),
+  children: [
+    {
+      name: '{{.TableNamePascal}}Create',
+      path: '/{{.TableNamePlural}}/create',
+      meta: {
+        title: '{{.TableNamePascal}} Create',
+      },
+      component: () => import('../views/{{.TableNamePlural}}/{{.TableNamePascal}}Edit.vue'),
+    },
+    {
+      name: '{{.TableNamePascal}}Edit',
+      path: '/{{.TableNamePlural}}/edit/:ulid',
+      meta: {
+        title: '{{.TableNamePascal}} Edit',
+      },
+      component: () => import('../views/{{.TableNamePlural}}/{{.TableNamePascal}}Edit.vue'),
+    },
+  ],
+}
+
+export default {{.TableNameCamel}}Route

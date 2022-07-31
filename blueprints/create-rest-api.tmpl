@@ -1,0 +1,126 @@
+import { PagedData } from '@/components/components';
+import validate from '@/utils/validate';
+import axios from 'axios';
+import { ulid } from 'ulid';
+
+const defaultValidationRules = {
+  siteULID: {
+    presence: {allowEmpty: false},
+  }
+  //name: {
+  //  presence: {allowEmpty: false},
+  //},
+  //email: {
+  //  presence: {allowEmpty: false},
+  //},
+  //phone: {
+  //  presence: {allowEmpty: false},
+  //}
+}
+
+export interface {{.TableNamePascal}} extends Record{{.LTStr}}string, any{{.GTStr}} {
+    {{range $index, $column := .Columns}}{{$column.ColumnNameCamel}}: {{$column.JavascriptType}},
+    {{ end }}
+}
+
+export interface {{.TableNamePascal}}API {
+  blank(siteULID: string) : {{.TableNamePascal}}
+  create({{.TableNameCamel}}: {{.TableNamePascal}}) : Promise{{.LTStr}}{{.TableNamePascal}}{{.GTStr}}
+  load({{.TableNameCamel}}ULID: string) : Promise{{.LTStr}}{{.TableNamePascal}}{{.GTStr}}
+  all() : Promise{{.LTStr}}{{.TableNamePascal}}[]{{.GTStr}}
+  paged(pagedData: PagedData{{.LTStr}}{{.TableNamePascal}}{{.GTStr}}) : Promise{{.LTStr}}PagedData{{.LTStr}}{{.TableNamePascal}}{{.GTStr}}{{.GTStr}};
+  update({{.TableNameCamel}}: {{.TableNamePascal}}) : Promise{{.LTStr}}{{.TableNamePascal}}{{.GTStr}}
+  delete({{.TableNameCamel}}ULID: string) : Promise{{.LTStr}}Boolean{{.GTStr}}
+  validate({{.TableNameCamel}}: {{.TableNamePascal}}, validation: any, fieldName?: string, additionalRules?: any): Promise{{.LTStr}}Record{{.LTStr}}string, string[]{{.GTStr}}{{.GTStr}};
+}
+
+export const {{.TableNameCamel}}API: {{.TableNamePascal}}API = {
+  blank (siteULID: string)  {
+    return {
+      {{range $index, $column := .Columns}}{{$column.ColumnNameCamel}}: {{$column.JavascriptBlankValue}},
+			{{ end }}
+    }
+  },
+  async create ({{.TableNameCamel}}: {{.TableNamePascal}}) {
+    return new Promise{{.LTStr}}{{.TableNamePascal}}{{.GTStr}}((resolve, reject) ={{.GTStr}} {
+      axios
+        .post(`{{.TableNameCamel}}/create`, {{.TableNameCamel}})
+        .then(res ={{.GTStr}} {
+          resolve(res.data)
+        })
+        .catch(res ={{.GTStr}} {
+          reject("something")
+        });
+    });
+  },
+  async load ({{.TableNameCamel}}ULID: string) {
+    return new Promise{{.LTStr}}{{.TableNamePascal}}{{.GTStr}}((resolve, reject) ={{.GTStr}} {
+      axios
+        .get(`{{.TableNameCamel}}/load/${{.LEFT_BRACE}}{{.TableNameCamel}}ULID{{.RIGHT_BRACE}}`)
+        .then(res ={{.GTStr}} {
+          resolve(res.data)
+        })
+        .catch(res ={{.GTStr}} {
+          reject("something")
+        });
+    });
+  },
+  async all () {
+    return new Promise{{.LTStr}}{{.TableNamePascal}}[]{{.GTStr}}((resolve, reject) ={{.GTStr}} {
+      axios
+        .get(`{{.TableNameCamel}}/load`)
+        .then(res ={{.GTStr}} {
+          resolve(res.data)
+        })
+        .catch(res ={{.GTStr}} {
+          reject("something")
+        });
+    });
+  },
+  async update ({{.TableNameCamel}}: {{.TableNamePascal}}) {
+    return new Promise{{.LTStr}}{{.TableNamePascal}}{{.GTStr}}((resolve, reject) ={{.GTStr}} {
+      axios
+        .put(`{{.TableNameCamel}}/update/${{.LEFT_BRACE}}{{.TableNameCamel}}.{{.TableNameCamel}}ULID{{.RIGHT_BRACE}}`, {{.TableNameCamel}})
+        .then(res ={{.GTStr}} {
+          resolve(res.data)
+        })
+        .catch(res ={{.GTStr}} {
+          reject("something")
+        });
+    });
+  },
+  async delete ({{.TableNameCamel}}ULID: string) {
+    return new Promise{{.LTStr}}boolean{{.GTStr}}((resolve, reject) ={{.GTStr}} {
+      axios
+        .delete(`{{.TableNameCamel}}/delete/${{.LEFT_BRACE}}{{.TableNameCamel}}ULID{{.RIGHT_BRACE}}`)
+        .then(res ={{.GTStr}} {
+          resolve(res.data)
+        })
+        .catch(res ={{.GTStr}} {
+          reject("something")
+        });
+    });
+  },
+
+  async paged(pagedData: PagedData{{.LTStr}}{{.TableNamePascal}}{{.GTStr}}): Promise{{.LTStr}}PagedData{{.LTStr}}{{.TableNamePascal}}{{.GTStr}}{{.GTStr}} {
+    return new Promise{{.LTStr}}PagedData{{.LTStr}}{{.TableNamePascal}}{{.GTStr}}{{.GTStr}}((resolve, reject) ={{.GTStr}} {
+      axios
+        .get(`{{.TableNameCamel}}/paged/${pagedData.sort}/${pagedData.direction}/limit/${pagedData.limit}/pagenum/${pagedData.pageNum}?search=${encodeURIComponent(
+          pagedData.search
+        )}`)
+        .then(res ={{.GTStr}} {
+          resolve(res.data)
+        })
+        .catch(res ={{.GTStr}} {
+          reject("something")
+        });
+    });
+  },
+
+  validate ({{.TableNameCamel}}: {{.TableNamePascal}}, validation: any, fieldName = '', additionalRules = {}) : Promise{{.LTStr}}Record{{.LTStr}}string, string[]{{.GTStr}}{{.GTStr}} {
+    return validate({{.TableNameCamel}}, validation, {
+      ...defaultValidationRules, 
+      ...additionalRules
+    }, fieldName)
+  }
+}

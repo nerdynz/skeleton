@@ -1,0 +1,387 @@
+package {{.TableName}}
+
+import (
+	"encoding/json"
+	"errors"
+	"net/http"
+	"sort"
+	"strings"
+	"time"
+	//runner "github.com/nerdynz/dat/sqlx-runner"
+	"github.com/nerdynz/datastore"
+	"github.com/nerdynz/skeleton/rpc/base"
+
+)
+
+var {{.TableNameCamel}}HelperGlobal *{{.TableNamePascal}}Helper
+
+{{/* 
+// {{.TableNamePascal}} Record
+type {{.TableNamePascal}} struct {
+	{{range $index, $column := .Columns}}{{$column.ColumnNamePascal}} {{$column.ColumnType}} `db:"{{$column.ColumnName}}" json:"{{$column.ColumnNameCamel}}"`
+	{{end}}
+	{{range $index, $child := .Children}}{{$child.PluralCamelName}}  []*{{$child.TableName}}  `json:"{{$child.CamelName}}"`
+	{{end}}
+}
+*/}}
+
+func (h *{{.TableNamePascal}}Helper) beforeSave(record *{{.TableNamePascal}}) (err error) {
+	if record.DateCreated == "" {
+		record.DateCreated = time.Now().Format(time.RFC3339)
+	}
+	record.DateModified = time.Now().Format(time.RFC3339)
+	{{/* if record.ULID == "" {
+		record.ULID = security.ULID()
+	} */}}
+
+	validationErr := h.validate(record)
+	if validationErr != nil {
+		return validationErr
+	}
+	return err
+}
+
+func (h *{{.TableNamePascal}}Helper) afterSave(record *{{.TableNamePascal}}) (err error) {
+	return err
+}
+
+// GENERATED CODE - Leave the below code alone
+type {{.TableNamePascal}}Helper struct {
+	datastore  *datastore.Datastore
+	fieldNames    []string
+	orderBy       string
+}
+
+//func {{.TableNamePascal}}Helper(datastore  *datastore.Datastore) *{{.TableNamePascal}}Helper {
+//	if {{.TableNameCamel}}HelperGlobal == nil {
+//		{{.TableNameCamel}}HelperGlobal = new{{.TableNamePascal}}Helper(datastore)
+//	}
+//	return {{.TableNameCamel}}HelperGlobal
+//}
+
+func new{{.TableNamePascal}}Helper(datastore *datastore.Datastore) *{{.TableNamePascal}}Helper {
+	helper := &{{.TableNamePascal}}Helper{}
+	helper.datastore = datastore
+
+	// Fields
+	fieldnames := []string{"{{.TableULID}}", {{.ColumnsDBStrings}}}
+	sort.Strings(fieldnames) // sort it makes searching it work correctly
+	helper.fieldNames = fieldnames
+	
+	{{if .HasSort}}helper.orderBy = "sort_position, date_created, date_modified"{{else}}helper.orderBy = "date_created, date_modified"{{end}}
+	return helper
+}
+
+func (h *{{.TableNamePascal}}Helper) New(siteUlid string) *{{.TableNamePascal}} {
+	record := &{{.TableNamePascal}}{}
+	// check DateCreated
+	record.DateCreated = time.Now().Format(time.RFC3339)
+	record.SiteUlid = siteUlid
+	return record
+}
+
+func (h *{{.TableNamePascal}}Helper) FromRequest(siteUlid string, req *http.Request) (*{{.TableNamePascal}}, error) {
+	record := h.New(siteUlid)
+	{{ if false }}
+	contentType := req.Header.Get("Content-Type")
+	if strings.Contains(contentType, "application/json") {
+	// working with json
+	{{ end }}
+
+	decoder := json.NewDecoder(req.Body)
+	err := decoder.Decode(record)
+	if err != nil {
+		return nil, err
+	}
+	{{ if false }}
+
+	} else {
+		return nil, errors.New("Disabled - bring in h.structDecoder from gorilla")
+		// // working with form values
+		// err := req.ParseForm()
+		// if err != nil {
+		// 	return nil, err
+		// }
+
+		// err = h.structDecoder.Decode(record, req.PostForm)
+		// if err != nil {
+		// 	return nil, err
+		// }
+	}
+	{{ end }}
+	if record.SiteUlid != siteUlid {
+		return nil, errors.New("{{.TableNamePascal}} update failed. Site ULID Mismatch")
+	}
+	record.SiteUlid = siteUlid
+	return record, nil
+}
+
+
+func (h *{{.TableNamePascal}}Helper) Load(siteUlid string, ulid string) (*{{.TableNamePascal}}, error) {
+	record, err := h.One(siteUlid, "{{.TableULID}} = $1 and $SITEULID", ulid)
+	if err != nil {
+		return nil, err
+	}
+	return record, nil
+}
+
+func (h *{{.TableNamePascal}}Helper) All(siteUlid string) ([]*{{.TableNamePascal}}, error) {
+	var records []*{{.TableNamePascal}}
+	err := h.datastore.DB.Select(h.fieldNames...).
+		From("{{.TableName}}").
+		Where("site_ulid = $1", siteUlid).
+		OrderBy(h.orderBy).
+		QueryStructs(&records)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return records, nil
+}
+
+func (h *{{.TableNamePascal}}Helper) Where(siteUlid string, sql string, args ...interface{}) ([]*{{.TableNamePascal}}, error) {
+	var records []*{{.TableNamePascal}}
+	sql, args, err := datastore.AppendSiteULID(siteUlid, sql, args...)
+	if err != nil {
+		return nil, err 
+	}
+	err = h.datastore.DB.Select(h.fieldNames...).
+		From("{{.TableName}}").
+		Where(sql, args...).
+		OrderBy(h.orderBy).
+		QueryStructs(&records)
+
+	if err != nil {
+		return nil, err
+	}
+	return records, nil
+}
+
+func (h *{{.TableNamePascal}}Helper) SQL(siteUlid string, sql string, args ...interface{}) ([]*{{.TableNamePascal}}, error) {
+	if !strings.Contains(sql, "$SITEULID") {
+		return nil, errors.New("No $SITEULID placeholder defined")
+	}
+	var records []*{{.TableNamePascal}}
+	sql, args, err := datastore.AppendSiteULID(siteUlid, sql, args...)
+	if err != nil {
+		return nil, err 
+	}
+	err = h.datastore.DB.SQL(sql, args...).
+		QueryStructs(&records)
+	if err != nil {
+		return nil, err
+	}
+	return records, nil
+}
+
+func (h *{{.TableNamePascal}}Helper) One(siteUlid string, sql string, args ...interface{}) (*{{.TableNamePascal}}, error) {
+	var record {{.TableNamePascal}}
+	sql, args, err := datastore.AppendSiteULID(siteUlid, sql, args...)
+
+	if err != nil {
+		return nil, err 
+	}
+	err = h.datastore.DB.Select(h.fieldNames...).
+		From("{{.TableName}}").
+		Where(sql, args...).
+		OrderBy(h.orderBy).
+		Limit(1).
+		QueryStruct(&record)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &record, nil
+}
+
+func (h *{{.TableNamePascal}}Helper) Paged(siteUlid string, pageNum int32, itemsPerPage int32) (*{{.TableNamePluralPascal}}Paged, error) {
+	pd, err := h.PagedBy(siteUlid, pageNum, itemsPerPage, "date_created", "", "") // date_created should be the most consistant because it doesn't change
+	if err != nil {
+		return nil, err
+	}
+	return pd, nil
+}
+
+func (h *{{.TableNamePascal}}Helper) PagedBy(siteUlid string, pageNum int32, itemsPerPage int32, orderByFieldName string, direction string, searchText string) (*{{.TableNamePluralPascal}}Paged, error) {
+	if orderByFieldName == "" || orderByFieldName == "default" {
+		// we only want the first field name
+		orderByFieldName = strings.Split(h.orderBy, ",")[0]
+		orderByFieldName = strings.Trim(orderByFieldName, " ")
+	}
+	i := sort.SearchStrings(h.fieldNames, orderByFieldName)
+	// check the orderby exists within the fields as this could be an easy sql injection hole.
+	if !(i {{.LTStr}} len(h.fieldNames) && h.fieldNames[i] == orderByFieldName) { // NOT
+		return nil, errors.New("field name [" + orderByFieldName + "]  isn't a valid field name")
+	}
+
+	direction = strings.ToLower(direction)
+	if direction == "none" {
+		direction = ""
+	}
+
+	if !(direction == "asc" || direction == "desc" || direction == "") {
+		return nil, errors.New("direction isn't valid")
+	}
+
+	whereClause := "site_ulid = $1"
+	if searchText != "" {
+		whereClause += " and tsv @@ to_tsquery($2)"
+	}
+
+	var records []*{{.TableNamePascal}}
+	err := h.datastore.DB.Select(h.fieldNames...).
+		From("{{.TableName}}").
+		Where(whereClause, siteUlid, datastore.FormatSearch(searchText)).
+		OrderBy(orderByFieldName + " " + direction).
+		Offset(uint64((pageNum - 1) * itemsPerPage)).
+		Limit(uint64(itemsPerPage)).
+		QueryStructs(&records)
+
+	if err != nil {
+		return nil, err
+	}
+
+	dirEnum := base.PagedInfo_NONE
+	switch strings.ToUpper(direction) {
+	case base.PagedInfo_ASC.String():
+		dirEnum = base.PagedInfo_ASC
+	case base.PagedInfo_DESC.String():
+		dirEnum = base.PagedInfo_DESC
+	}
+
+	count := int32(0)
+	h.datastore.DB.SQL(`select count({{.TableName}}_ulid) from {{.TableName}} where site_ulid = $1`, siteUlid).QueryStruct(&count)
+	paged := &base.PagedInfo{
+		PageNumber: pageNum,
+		OrderBy:    orderByFieldName,
+		Direction:  dirEnum,
+		Limit:      itemsPerPage,
+		Total:      count,
+		Search:     searchText,
+	}
+	return &{{.TableNamePluralPascal}}Paged{
+		PagedInfo: paged,
+		Records:   records,
+	}, nil
+}
+
+func (h *{{.TableNamePascal}}Helper) Save(siteUlid string, record *{{.TableNamePascal}}) error {
+	return h.save(siteUlid, record)
+}
+
+func (h *{{.TableNamePascal}}Helper) SaveMany(siteUlid string, records []*{{.TableNamePascal}}) error {
+	for _, record := range records {
+		err := h.save(siteUlid, record)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (h *{{.TableNamePascal}}Helper) save(siteUlid string, record *{{.TableNamePascal}}) error {
+	err := h.beforeSave(record)
+	if err != nil {
+		return err
+	}
+
+	if record.SiteUlid != siteUlid {
+		return errors.New("*{{.TableNamePascal}} update failed. SITEULID Mismatch")
+	}
+	cols := []string{ {{.ColumnsDBStrings}} }
+	vals := []interface{}{ {{.ColumnsRecordPrefixedStrings}} }
+	err = h.datastore.DB.Upsert("{{.TableName}}").
+		Columns(cols...).
+		Values(vals...).
+		Where("{{.TableULID}} = $1", record.{{.TableNamePascal}}Ulid).
+		Returning("{{.TableULID}}").
+		QueryStruct(record)
+	{{ if false }}
+	//	if record.{{.TableNamePascal}}Ulid != "" {
+	//		// UPDATE
+	//		b := h.datastore.DB.Update("{{.TableName}}")
+	//		for i := range cols {
+	//			b.Set(cols[i], vals[i])
+	//		}
+	//		b.Where("{{.TableULID}} = $1", record.{{.TableNamePascal}}Ulid)
+	//		b.Returning("{{.TableULID}}")
+	//		err = b.QueryStruct(record)
+	//	} else {
+	//		// INSERT
+	//		err = h.datastore.DB.
+	//			InsertInto("{{.TableName}}").
+	//			Columns(cols...).
+	//			Values(vals...).
+	//			Returning("{{.TableULID}}").
+	//			QueryStruct(record)
+	//	}
+	{{ end }}
+	if err != nil {
+		return err
+	}
+	err = h.afterSave(record)
+	return err
+}
+
+func (h *{{.TableNamePascal}}Helper) Delete(siteUlid string, recordULID string) (bool, error) {
+	result, err := h.datastore.DB.
+		Update("{{.TableName}}").
+		Set("date_deleted", time.Now().Format(time.RFC3339)).
+		Where("site_ulid=$1 and {{.TableULID}}=$2", siteUlid, recordULID).
+		Exec()
+
+	if err != nil {
+		return false, err
+	}
+
+	return (result.RowsAffected > 0), nil
+}
+
+func (h *{{.TableNamePascal}}Helper) Purge(siteUlid string, recordULID string) (bool, error) {
+	result, err := h.datastore.DB.
+		DeleteFrom("{{.TableName}}").
+		Where("site_ulid=$1 and {{.TableULID}}=$2", siteUlid, recordULID).
+		Exec()
+	if err != nil {
+		return false, err
+	}
+
+	return (result.RowsAffected > 0), nil
+}
+
+func (h *{{.TableNamePascal}}Helper) validate(record *{{.TableNamePascal}}) (err error) {
+	return nil
+//	validationErrors := h.validator.Struct(record)
+//	if validationErrors != nil {
+//		errMessage := ""
+//		for _, err := range err.(validator.ValidationErrors) {
+//			errMessage += err.Kind().String() + " validation Error on field "+err.Field()
+//		}
+//		if errMessage != "" {
+//			err = errors.New(errMessage)
+//		}
+//	}
+//	return err
+}
+
+{{$tableNameCame := .TableNameCamel}}{{$tableName := .TableName}}{{$TableNamePascal := .TableNamePascal}}{{$TableULID := .TableULID}}
+{{range $index, $child := .Children}}<!--
+-->//func ({{$tableNameCame}} *{{$TableNamePascal}}) Save{{$child.PluralName}}(siteUlid string) error {
+//	return {{$child.TableName}}Helper().SaveMany(siteUlid, {{$tableNameCame}}.{{$child.PluralName}})
+//}
+//
+//func ({{$tableNameCame}} *{{$TableNamePascal}}) Load{{$child.PluralName}}(siteUlid string) error {
+//	return {{$tableNameCame}}.Load{{$child.PluralName}}Where(siteUlid, "{{$TableULID}} = $1 $SITEULID", {{$tableNameCame}}.{{$TableNamePascal}}ULID)
+//}
+//
+//func ({{$tableNameCame}} *{{$TableNamePascal}}) Load{{$child.PluralName}}Where(siteUlid string, sql string, args ...interface{}) error {
+//	children, err := {{$child.TableName}}Helper().Where(siteUlid, sql, args...)
+//	if err != nil {
+//		return err
+//	}
+//	{{$tableNameCame}}.{{$child.PluralName}} = children
+//	return nil
+//}
+{{end}}
