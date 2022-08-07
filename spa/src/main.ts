@@ -1,5 +1,5 @@
 import Componenty from '@nerdynz/componenty/src/index';
-
+import { titleCase } from '@nerdynz/componenty/src/utils/formatters';
 
 import Oruga from '@oruga-ui/oruga-next';
 
@@ -26,7 +26,7 @@ app.use(pinia) // pinia must come first
 app.use(router)
 router.afterEach((to, from) => {
   nextTick( () => {
-    document.title = (to.meta.title ? to.meta.title : '***') + ' - Skeleton' ;
+    document.title =`${(to.meta.title ? to.meta.title : '***')} - ${titleCase('skeleton')}` ;
   });
 })
 

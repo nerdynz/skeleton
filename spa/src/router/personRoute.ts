@@ -1,8 +1,8 @@
 const personRoute =  {
   name: 'PersonList',
-  path: '/people',
+  path: '/users',
   meta: {
-    title: 'Person',
+    title: 'Users',
     icon: 'free-person',
     inSidebar: true
   },
@@ -10,17 +10,17 @@ const personRoute =  {
   children: [
     {
       name: 'PersonCreate',
-      path: '/people/create',
+      path: '/users/create',
       meta: {
-        title: 'Person Create',
+        title: 'Create User',
       },
       component: () => import('../views/people/PersonEdit.vue'),
     },
     {
       name: 'PersonEdit',
-      path: '/people/edit/:ulid',
+      path: '/users/edit/:ulid',
       meta: {
-        title: 'Person Edit',
+        title: 'Edit User',
       },
       component: () => import('../views/people/PersonEdit.vue'),
     },

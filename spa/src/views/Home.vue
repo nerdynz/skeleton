@@ -1,7 +1,7 @@
 <template>
    <with-actions class="fh-card p-4">
     <template #left>
-      <h2 class="title is-2 mb-0">Home</h2>
+      <h1 class="title is-1 mb-0">Home</h1>
     </template>
     <template #right>
     </template>

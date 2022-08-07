@@ -1,15 +1,15 @@
 <template>
-  <with-actions class="fh-card p-4">
+  <with-actions class="fh-card p-4" :actions="actions" :paged-info="pagedInfo" @pagination-changed="changePageInfo">
     <template #left>
-      <h2 class="title is-2 mb-0">{{.TableNamePascal}}s</h2>
+      <h1 class="title is-3 mb-0">{{.TableNamePascal}}s</h1>
     </template>
     <template #right>
-      <form-field for="search" icon="far-search" label="Search" class="with-button">
+      <form-field for="search" icon="free-search" label="Search" class="with-button">
         <input class="input" name="search" v-model.trim="pagedInfo.search" type="text" @keyup.enter="loadData" @keyup.esc="pagedInfo.search = ''" autocomplete="off" />
       </form-field>
-      <button class="button is-primary" @click="actions.find((a:any) => a.name === 'Create {{.TableNamePascal}}')?.action">Create {{.TableNamePascal}}</button>
+      {{.LTStr}}!--<button class="button is-primary" @click="actions.find((a:any) => a.name === 'Create {{.TableNamePascal}}')?.action">Create {{.TableNamePascal}}</button>--{{.GTStr}}
     </template>
-    <data-table class="is-fullwidth is-stripped" :columns="columns" :rows="rows" :paged-info="pagedInfo" @change="changePageInfo">
+    <data-table class="is-fullwidth is-stripped" :columns="columns" :rows="rows" :paged-info="pagedInfo" hide-pagination @change="changePageInfo">
       {{.LTStr}}!-- <template #colgroup>
         <colgroup>
           <col width="100px" />
@@ -21,7 +21,7 @@
         </colgroup>
       </template> --{{.GTStr}}
       <template #actions="{ row }">
-        <o-button tag="a" @click="edit(row.{{.TableNameCamel}}Ulid)" class="is-light" size="small" icon-left="fad-pencil is-small">Edit</o-button>
+        <o-button tag="a" @click="edit(row.{{.TableNameCamel}}Ulid)" class="is-light" size="small" icon-pack="free" icon-left="edit is-small">Edit</o-button>
       </template>
       <loading :on="['Load{{.TableNamePascalPlural}}']" />
     </data-table>
@@ -34,8 +34,8 @@ import api from '@/api'
 import { PagedInfo } from '@/api/pb/base.pb'
 import { {{.TableNamePascal}} } from '@/api/pb/{{.TableNameCamel}}.pb'
 import ColumnMeta from '@nerdynz/componenty/src/types/ColumnMeta'
-import { computed, onMounted, ref, Ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { computed, onMounted, ref, Ref, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 
 const columns: Record<string, ColumnMeta> = {
   actions: {
@@ -51,6 +51,7 @@ const columns: Record<string, ColumnMeta> = {
   },{{ end }}{{ end }}
 }
 
+const route = useRoute()
 const router = useRouter()
 const rows: Ref{{.LTStr}}{{.TableNamePascal}}[]{{.GTStr}} = ref([])
 const pagedInfo: Ref<PagedInfo> = ref({

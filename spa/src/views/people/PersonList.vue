@@ -1,26 +1,23 @@
 <template>
-  <with-actions class="fh-card p-4">
+  <with-actions class="fh-card p-4" :actions="actions" :paged-info="pagedInfo" @pagination-changed="changePageInfo">
     <template #left>
-      <h2 class="title is-2 mb-0">Persons</h2>
+      <h1 class="title is-3 mb-0">Users</h1>
     </template>
     <template #right>
       <form-field for="search" icon="free-search" label="Search" class="with-button">
         <input class="input" name="search" v-model.trim="pagedInfo.search" type="text" @keyup.enter="loadData" @keyup.esc="pagedInfo.search = ''" autocomplete="off" />
       </form-field>
-      <button class="button is-primary" @click="actions.find((a: any) => a.name === 'Create Person')?.action">Create Person</button>
     </template>
-    <data-table class="is-fullwidth is-stripped" :columns="columns" :rows="rows" :paged-info="pagedInfo" @change="changePageInfo">
-    <template #colgroup>
+    <data-table class="is-fullwidth is-stripped" :columns="columns" :rows="rows" :paged-info="pagedInfo" hide-pagination>
+      <template #colgroup>
         <colgroup>
-          <col width="100px" />
-          <col width="200px" />
-          <col width="100px" />
-          <col width="200px" />
-          <col width="200px" />
-          <col width="140px" />
-          <col width="140px" />
-          <col width="140px" />
-          <col width="140px" />
+          <col width="5%" />
+          <col width="15%" />
+          <col width="15%" />
+          <col width="20%" />
+          <col width="20%" />
+          <col width="12.5%" />
+          <col width="12.5%" />
         </colgroup>
       </template>
       <template #actions="{ row }">
@@ -67,16 +64,16 @@ const columns: Record<string, ColumnMeta> = {
     format: 'text',
     align: 'left',
   },
-  role: {
-    heading: 'Role',
-    format: 'text',
-    align: 'left',
-  },
-  initials: {
-    heading: 'Initials',
-    format: 'text',
-    align: 'left',
-  },
+  // role: {
+  //   heading: 'Role',
+  //   format: 'text',
+  //   align: 'left',
+  // },
+  // initials: {
+  //   heading: 'Initials',
+  //   format: 'text',
+  //   align: 'left',
+  // },
   dateCreated: {
     heading: 'Date Created',
     format: 'date',
@@ -141,5 +138,4 @@ watch(
   },
   { flush: 'pre', immediate: true, deep: true }
 )
-
 </script>

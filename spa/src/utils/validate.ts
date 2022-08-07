@@ -10,6 +10,7 @@ export default function validate(record: any | null, validation: Validation | nu
   if (fieldName) {
     // we are checking an indiviual field so ensure the previous result gets passed
     result = validation?.result || {}
+    console.log('result', result)
     if (result.hasOwnProperty(fieldName)) {
       delete result[fieldName]
     }
@@ -24,13 +25,16 @@ export default function validate(record: any | null, validation: Validation | nu
       let toValidate: any = validationDefinition
       if (fieldName in validationDefinition) {
         toValidate = { [fieldName]: validationDefinition[fieldName] }
+        if ('equality' in toValidate[fieldName]) {
+          let equalityFieldName = typeof(toValidate[fieldName].equality) === 'string' ? toValidate[fieldName].equality : toValidate[fieldName].equality.attribute
+          toValidate[equalityFieldName] = validationDefinition[equalityFieldName] 
+        }
       }
       let newRes = await validatejs.async(record, toValidate)
       let validationResult = {
         isValid: Object.keys(result).length === 0,
         result: result
       }
-      console.log('validationResult', validationResult)
       resolve(validationResult)
     } catch (validationErrors: any) {
       console.warn('Validation Error', validationErrors)

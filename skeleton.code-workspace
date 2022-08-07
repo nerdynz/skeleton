@@ -1,0 +1,17 @@
+{
+	"folders": [
+                {
+                        "path": "rpc"
+                },
+                {
+                        "path": "spa"
+                },
+                {
+                        "path": "proto"
+                },
+                {
+                        "path": "blueprints"
+                }
+	],
+	"settings": {}
+}
