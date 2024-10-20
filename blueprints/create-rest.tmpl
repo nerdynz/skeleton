@@ -33,7 +33,7 @@ func Create{{.TableNamePascal}}(w http.ResponseWriter, req *http.Request, flow *
 		flow.ErrorJSON(http.StatusInternalServerError, "Failed to create {{.TableNameCamel}} record", err)
 		return
 	}
-	err = {{.TableNameCamel}}Helper.Save(siteULID,{{.TableNameCamel}})
+	err = {{.TableNameCamel}}Helper.Save(ctx,{{.TableNameCamel}})
 	if err != nil {
 		flow.ErrorJSON(http.StatusInternalServerError, "Failed to create {{.TableNameCamel}} record", err)
 		return
@@ -102,7 +102,7 @@ func Paged{{.TableNamePluralPascal}}(w http.ResponseWriter, req *http.Request, f
 	search := flow.URLParam("search")
 
 
-	data, err := {{.TableNameCamel}}Helper.PagedBy(siteULID, pageNum, limit, sort, direction, search)
+	data, err := {{.TableNameCamel}}Helper.PagedBy(ctx, pageNum, limit, sort, direction, search)
 	if err != nil {
 		flow.ErrorJSON(http.StatusInternalServerError, "Unabled to get paged {{.TableNamePascal}} data", err)
 		return
@@ -125,7 +125,7 @@ func Update{{.TableNamePascal}}(w http.ResponseWriter, req *http.Request, flow *
 	}
 
 	// save and validate
-	err = {{.TableNameCamel}}Helper.Save(siteULID, {{.TableNameCamel}})
+	err = {{.TableNameCamel}}Helper.Save(ctx, {{.TableNameCamel}})
 	// other type of error
 	if err != nil {
 		flow.ErrorJSON(http.StatusInternalServerError, "Failed to save updated {{.TableNamePascal}} record", err)

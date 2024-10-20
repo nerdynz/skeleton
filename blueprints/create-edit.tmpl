@@ -7,22 +7,22 @@ FIELD START
 
 TEXT
 -->{{ if eq $col.ControlType "text" }}
-        <o-input label="{{$col.Label}}" name="{{$col.NameCamelCase}}" type="text" v-model="record.{{$col.NameCamelCase}}" /><!--
+        <b-input label="{{$col.Label}}" name="{{$col.NameCamelCase}}" type="text" v-model="record.{{$col.NameCamelCase}}" /><!--
 -->{{ end }}<!--
 
 TEXTAREA
 -->{{ if eq $col.ControlType "textarea" }}
-        <o-input label="{{$col.Label}}" name="{{$col.NameCamelCase}}" type="text" v-model="record.{{$col.NameCamelCase}}" /><!--
+        <b-input label="{{$col.Label}}" name="{{$col.NameCamelCase}}" type="text" v-model="record.{{$col.NameCamelCase}}" /><!--
 -->{{ end }}<!--
 
 DATETIME
 -->{{ if eq $col.ControlType "datetime" }}
-        <date-picker label="{{$col.Label}}" name="{{$col.NameCamelCase}}" type="datetime" v-model="record.{{$col.NameCamelCase}}" /><!--
+        <b-datepicker label="{{$col.Label}}" name="{{$col.NameCamelCase}}" type="datetime" v-model="record.{{$col.NameCamelCase}}" /><!--
 -->{{ end }}<!--
 
 NUMBER
 -->{{ if eq $col.ControlType "number" }}
-        <o-input label="{{$col.Label}}" name="{{$col.NameCamelCase}}" type="number" v-model="record.{{$col.NameCamelCase}}" /><!--
+        <b-input label="{{$col.Label}}" name="{{$col.NameCamelCase}}" type="number" v-model="record.{{$col.NameCamelCase}}" /><!--
 -->{{ end }}<!--
 
 RICHTEXT
@@ -37,7 +37,7 @@ IMAGE
 
 SELECT
 -->{{ if eq $col.ControlType "select" }}
-          <select name="{{$col.Name}}" v-model="record.{{$col.Name}}"><!--
+          <select name="{{$col.Name}}" v-model="record.{{$col.NameCamelCase}}"><!--
           -->{{ range $j, $enumValue := $col.EnumValues}}
             <option value="{{$enumValue}}">{{$enumValue}}</option><!--
           -->{{end}}
@@ -48,16 +48,15 @@ FIELD END
 -->
       </form-field>{{ end }}{{end}}
     </form>
-    <loading :on="['Load{{.TableNameCamelPlural}}']" />
+    <loading :on="['Load{{.TableNamePluralCamel}}']" />
   </slideout>
 {{.LTStr}}/template{{.GTStr}}
 
 {{.LTStr}}script lang="ts" setup{{.GTStr}}
-import api from '@/api'
+import {{.TableNameCamel}}Api from '@/api/{{.TableNameCamel}}'
 import { {{.TableNamePascal}} } from '@/api/pb/{{.TableNameCamel}}.pb'
-import { Validation } from '@/utils/validate'
-import Slideout from '@nerdynz/componenty/src/components/Popover/Slideout.vue'
-import { computed, onMounted, ref, Ref } from 'vue'
+import { type Validation, Slideout } from '@nerdynz/satchel'
+import { computed, onMounted, ref, type Ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
 const route = useRoute()
@@ -72,7 +71,7 @@ const pageTitle = computed(() ={{.GTStr}} {
 })
 
 async function validate(fieldName = '') {
-  validation.value = await api.{{.TableNameCamel}}.validate(record.value!, validation.value, fieldName)
+  validation.value = await {{.TableNameCamel}}Api.validate(record.value!, validation.value, fieldName)
 }
 
 const isValid = computed(() ={{.GTStr}} {
@@ -86,11 +85,11 @@ async function load() {
   record.value = null
   if (route.params?.ulid) {
     // EDIT
-    record.value = await api.{{.TableNameCamel}}.load{{.TableNamePascal}}({
+    record.value = await {{.TableNameCamel}}Api.load{{.TableNamePascal}}({
       ulid: route.params?.ulid as string,
     })
   } else {
-    record.value = api.{{.TableNameCamel}}.create{{.TableNamePascal}}()
+    record.value = {{.TableNameCamel}}Api.create{{.TableNamePascal}}()
   }
 }
 
@@ -120,7 +119,7 @@ const actions = computed(() ={{.GTStr}} {
       name: 'Delete',
       class: 'is-danger is-right',
       action: () ={{.GTStr}} {
-        // this.$api.{{.TableNameCamel}}.delete(this.{{.TableNameCamel}}Ulid)
+        // this.${{.TableNameCamel}}Api.delete(this.{{.TableNameCamel}}Ulid)
       },
     },
   ]
@@ -129,7 +128,7 @@ const actions = computed(() ={{.GTStr}} {
 async function save(): Promise{{.LTStr}}boolean{{.GTStr}} {
   await validate()
   if (isValid.value) {
-    let {{.TableNameCamel}} = await api.{{.TableNameCamel}}.save{{.TableNamePascal}}(record.value!)
+    let {{.TableNameCamel}} = await {{.TableNameCamel}}Api.save{{.TableNamePascal}}(record.value!)
     record.value = {{.TableNameCamel}}
     router.replace({ name: '{{.TableNamePascal}}Edit', params: { ulid: {{.TableNameCamel}}.{{.TableNameCamel}}Ulid } })
     return true

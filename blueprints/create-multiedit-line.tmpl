@@ -1,0 +1,74 @@
+{{.LTStr}}template{{.GTStr}}
+    <form v-if="record" @keyup.enter="save" class="multi-edit-line">{{ range $i, $col := .Columns}}{{ if not (eq $col.ControlType "") }}<!--
+-->
+      <form-field class="mt-4" :validation="validation" @changed="validate" for="{{$col.NameCamelCase}}" label="{{$col.Label}}"><!--
+FIELD START
+
+TEXT
+-->{{ if eq $col.ControlType "text" }}
+        <b-input label="{{$col.Label}}" name="{{$col.NameCamelCase}}" type="text" v-model="record.{{$col.NameCamelCase}}" /><!--
+-->{{ end }}<!--
+
+TEXTAREA
+-->{{ if eq $col.ControlType "textarea" }}
+        <b-input label="{{$col.Label}}" name="{{$col.NameCamelCase}}" type="text" v-model="record.{{$col.NameCamelCase}}" /><!--
+-->{{ end }}<!--
+
+DATETIME
+-->{{ if eq $col.ControlType "datetime" }}
+        <b-datepicker label="{{$col.Label}}" name="{{$col.NameCamelCase}}" type="datetime" v-model="record.{{$col.NameCamelCase}}" /><!--
+-->{{ end }}<!--
+
+NUMBER
+-->{{ if eq $col.ControlType "number" }}
+        <b-input label="{{$col.Label}}" name="{{$col.NameCamelCase}}" type="number" v-model="record.{{$col.NameCamelCase}}" /><!--
+-->{{ end }}<!--
+
+RICHTEXT
+-->{{ if eq $col.ControlType "richtext" }}
+        <rich-text name="{{$col.NameCamelCase}}" v-model="record.{{$col.NameCamelCase}}" /><!--
+-->{{ end }}<!--
+
+IMAGE
+-->{{ if eq $col.ControlType "image" }}
+        <image-upload name="{{$col.NameCamelCase}}" v-model="record.{{$col.NameCamelCase}}" /><!--
+-->{{ end }}<!--
+
+SELECT
+-->{{ if eq $col.ControlType "select" }}
+          <select name="{{$col.Name}}" v-model="record.{{$col.NameCamelCase}}"><!--
+          -->{{ range $j, $enumValue := $col.EnumValues}}
+            <option value="{{$enumValue}}">{{$enumValue}}</option><!--
+          -->{{end}}
+          </select><!--
+-->{{ end }}<!--
+
+FIELD END
+-->
+      </form-field>{{ end }}{{end}}
+    </form>
+{{.LTStr}}/template{{.GTStr}}
+
+{{.LTStr}}script lang="ts" setup{{.GTStr}}
+import {{.TableNameCamel}}Api from '@/api/{{.TableNameCamel}}'
+import { {{.TableNamePascal}} } from '@/api/pb/{{.TableNameCamel}}.pb'
+
+import { type Validation } from '@nerdynz/satchel'
+
+const props = defineProps{{.LTStr}}{
+  record: {{.TableNamePascal}}
+}{{.GTStr}}()
+
+async function validate(fieldName = '') {
+  validation = await {{.TableNameCamel}}Api.validate(props.record, validation, fieldName)
+}
+
+const isValid = $computed(() => {
+  return validation.isValid
+})
+
+let validation: Validation = $ref({
+  isValid: false,
+})
+{{.LTStr}}/script{{.GTStr}}
+

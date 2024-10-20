@@ -83,10 +83,9 @@ func (s *AccessServer) Logout(ctx context.Context, req *InvalidateUser) (*Invali
 	padlock := security.NewFromContext(ctx, s.Settings, s.Key)
 	success, _ := padlock.Logout()
 	// if err != nil {
-	s.Logger.Info("xxx", success)
 	// 	return nil, twirp.NewError(twirp.Internal, err.Error())
 	// }
 	return &InvalidateSuccess{
-		IsSuccess: true,
+		IsSuccess: success,
 	}, nil
 }

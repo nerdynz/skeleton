@@ -1,3 +1,4 @@
+{{$global := .}}
 <template>
   <with-actions class="fh-card p-4" :actions="actions" :paged-info="pagedInfo" @pagination-changed="changePageInfo">
     <template #left>
@@ -9,51 +10,56 @@
       </form-field>
       {{.LTStr}}!--<button class="button is-primary" @click="actions.find((a:any) => a.name === 'Create {{.TableNamePascal}}')?.action">Create {{.TableNamePascal}}</button>--{{.GTStr}}
     </template>
-    <data-table class="is-fullwidth is-stripped" :columns="columns" :rows="rows" :paged-info="pagedInfo" hide-pagination @change="changePageInfo">
-      {{.LTStr}}!-- <template #colgroup>
-        <colgroup>
-          <col width="100px" />
-          <col width="200px" />
-          <col width="100px" />
-          <col width="auto" />
-          <col width="140px" />
-          <col width="140px" />
-        </colgroup>
-      </template> --{{.GTStr}}
-      <template #actions="{ row }">
-        <o-button tag="a" @click="edit(row.{{.TableNameCamel}}Ulid)" class="is-light" size="small" icon-pack="free" icon-left="edit is-small">Edit</o-button>
-      </template>
-      <loading :on="['Load{{.TableNamePascalPlural}}']" />
-    </data-table>
+    <b-table
+      datakey="{{.TableUlidCamel}}"
+      custom-row-key="{{.TableUlidCamel}}"
+      :data="records"
+      paginated
+      :per-page="pagedInfo.limit"
+      :backend-pagination="true"
+      :backend-sorting="true"
+      :total="pagedInfo.total"
+      :default-sort="['dateCreated', 'desc']"
+      @sort="sort"
+      @page-change="pageChange"
+      :striped="true">
+      {{range $index, $col := .Columns}}<b-table-column v-slot="props" field="{{$col.NameCamelCase}}" label="{{$col.Label}}" sortable>
+        {{$global.LEFT_BRACE}}{{$global.LEFT_BRACE}} props.row.{{$col.NameCamelCase}} {{$global.RIGHT_BRACE}}{{$global.RIGHT_BRACE}}
+      </b-table-column>{{end}}
+    </b-table>
+    <loading :on="['Load{{.TableNamePluralPascal}}']" />
   </with-actions>
   <router-view />
 </template>
 
 {{.LTStr}}script lang="ts" setup{{.GTStr}}
-import api from '@/api'
+import {{.TableNameCamel}}Api from '@/api/{{.TableNameCamel}}'
 import { PagedInfo } from '@/api/pb/base.pb'
 import { {{.TableNamePascal}} } from '@/api/pb/{{.TableNameCamel}}.pb'
-import ColumnMeta from '@nerdynz/componenty/src/types/ColumnMeta'
+
 import { computed, onMounted, ref, Ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
-const columns: Record<string, ColumnMeta> = {
-  actions: {
+const columns: Array<any> = [
+  {
+    field: 'actions',
+    label: '',
     heading: '',
     format: 'custom',
     sortEnabled: false,
   },
 {{range $index, $column := .Columns}}{{ if eq $column.ColumnNamePascal "ULID"}}{{ else if $column.IsID}}{{ else if $column.IsSort }}{{else}}
-  {{$column.ColumnNameCamel}}: {
-    heading: '{{$column.ColumnNameSplitTitle}}',
+   {
+    field: '{{$column.ColumnNameCamel}}',
+    label: '{{$column.ColumnNameSplitTitle}}',
     format:  {{ if $column.IsDate }}'date'{{else}}'text'{{end}},
     align: 'left',
   },{{ end }}{{ end }}
-}
+]
 
 const route = useRoute()
 const router = useRouter()
-const rows: Ref{{.LTStr}}{{.TableNamePascal}}[]{{.GTStr}} = ref([])
+const records: Ref{{.LTStr}}{{.TableNamePascal}}[]{{.GTStr}} = ref([])
 const pagedInfo: Ref<PagedInfo> = ref({
   orderBy: 'date_created',
   direction: PagedInfo.Direction.ASC,
@@ -81,9 +87,9 @@ function changePageInfo(pi: PagedInfo) {
 }
 
 async function loadData() {
-  const resp = await api.{{.TableNameCamel}}.paged{{.TableNamePluralPascal}}(pagedInfo.value)
+  const resp = await {{.TableNameCamel}}Api.paged{{.TableNamePluralPascal}}(pagedInfo.value)
   pagedInfo.value = resp.pagedInfo
-  rows.value = resp.records
+  records.value = resp.records
 }
 
 function create() {
@@ -93,6 +99,13 @@ function create() {
 function edit({{.TableNameCamel}}Ulid: string) {
   router.push({ name: '{{.TableNamePascal}}Edit', params: { ulid: {{.TableNameCamel}}Ulid } })
 }
+
+function sort(a: any) {
+}
+
+function pageChange(a: any) {
+}
+
 
 watch(
   () => route.name,

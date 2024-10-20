@@ -1,0 +1,77 @@
+version: '3'
+
+tasks:
+  default: 
+    cmds: 
+      - task _dev
+
+  _dev: 
+    deps: [go-watch, frontend, sass-watch]
+
+
+  frontend: 
+    dir: 
+      '$GOPATH/src/github.com/nerdynz/skeleton/spa'
+    cmds:
+      - bun dev
+
+  go-watch: 
+    dir: 
+      '$GOPATH/src/github.com/nerdynz/skeleton/rpc'
+    cmds:
+      - dotenvx run -f .env -- air
+
+  sass-watch: 
+    dir: 
+      '$GOPATH/src/github.com/nerdynz/skeleton/spa'
+    cmds: 
+      - "sass --load-path=node_modules base.scss ./src/assets/base.css --watch"
+
+  # db:
+  #   dir: 
+  #     '$GOPATH/src/github.com/nerdynz/skeleton'
+  #   cmds:
+  #     - fly proxy 5432 -a cliq-pg
+
+  vendor:
+    dir: 
+      '$GOPATH/src/github.com/nerdynz/skeleton/rpc'
+    cmds:
+      - go mod vendor
+
+  unvendor:
+    dir: 
+      '$GOPATH/src/github.com/nerdynz/skeleton/rpc'
+    cmds:
+      - rm -r vendor
+
+  deploy:
+    dir: 
+      '$GOPATH/src/github.com/nerdynz/skeleton'
+    cmds:
+      - task: build-fe
+      - task: vendor
+      - fly deploy
+      - task: unvendor
+
+  build-fe:
+    dir: 
+      '$GOPATH/src/github.com/nerdynz/skeleton/spa'
+    cmds:
+      - pnpm build
+      - rm -r ../assets
+      - mv dist/assets ../assets
+      - mv dist/index.html ../rpc/templates/spa.html
+
+  build-bulma: 
+    cmds: 
+      - "sass sass/main.scss public/css/main.css"
+
+  icons: 
+    cmds: 
+    - "svg-sprite -s --symbol-dest=public --symbol-render-css-dest=sprite --symbol-bust icons/*.svg"
+
+  pdf: 
+    cmds: 
+    - "jeevesrpcpdf"
+  

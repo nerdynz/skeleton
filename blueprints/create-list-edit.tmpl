@@ -1,0 +1,122 @@
+{{$global := .}}{{.LTStr}}template{{.GTStr}}
+  <with-actions class="p-4" :actions="actions" :paged-info="pagedInfo" @pagination-changed="changePageInfo">
+    <template #left>
+      <h1 class="title is-3 mb-0">{{.TableNameCamel}}s</h1>
+    </template>
+    <template #right>
+      <form-field for="search" icon="free-search" label="Search" class="with-button">
+        <input class="input" name="search" v-model.trim="pagedInfo.search" type="text" @keyup.enter="loadData" @keyup.esc="pagedInfo.search = ''" autocomplete="off" />
+      </form-field>
+      <!--<button class="button is-primary" @click="actions.find((a:any) => a.name === 'Create {{.TableNameCamel}}')?.action">Create {{.TableNameCamel}}</button>-->
+    </template>
+    <section class="mt-4">
+      <div class="sidelist columns">
+        <div class="column is-2">
+          <div class="card is-shadowless mb-3 p-2" v-for="record in records">
+            <h2 class="title is-5">{{.LEFT_BRACE}}{{.LEFT_BRACE}} record.{{.TableNameCamel}}Ulid {{.RIGHT_BRACE}}{{.RIGHT_BRACE}} PLACEHOLDER</h2>
+            <h3 class="subtitle is-6">{{.LEFT_BRACE}}{{.LEFT_BRACE}} record.{{.TableNameCamel}}Ulid {{.RIGHT_BRACE}}{{.RIGHT_BRACE}} PLACEHOLDER</h3>
+
+            <nav class="level">
+              <div class="level-left"></div>
+              <div class="level-right">
+                <p class="level-item">
+                  <b-button @click="edit(record.{{.TableNameCamel}}Ulid)" size="is-small" icon-left="fad-pencil">Edit</b-button>
+                </p>
+              </div>
+            </nav>
+          </div>
+        </div>
+        <div class="column is-10">
+          <router-view />
+        </div>
+      </div>
+    </section>
+
+    <loading :on="['Paged{{.TableNameCamel}}s']" />
+  </with-actions>
+{{.LTStr}}/template{{.GTStr}}
+
+{{.LTStr}}script lang="ts" setup{{.GTStr}}
+import {{.TableNameCamel}}Api from '@/api/{{.TableNameCamel}}'
+import { PagedInfo } from '@/api/pb/base.pb'
+import { {{.TableNamePascal}} } from '@/api/pb/{{.TableNameCamel}}.pb'
+import { watch, type Ref } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+
+const route = useRoute()
+const router = useRouter()
+
+let records: {{.TableNamePascal}}[] = $ref([])
+let pagedInfo: PagedInfo = $ref({
+  orderBy: 'date_created',
+  direction: PagedInfo.Direction.ASC,
+  pageNumber: 1,
+  limit: 3,
+  total: 100,
+  search: '',
+})
+
+const actions = $computed(() => {
+  return [
+    {
+      name: 'Create {{.TableNameCamel}}',
+      iconLeft: 'far-heart',
+      action: () => {
+        create()
+      },
+    },
+  ]
+})
+
+function changePageInfo(pi: PagedInfo) {
+  pagedInfo = pi
+  loadData()
+}
+
+async function loadData() {
+  const resp = await {{.TableNameCamel}}Api.paged{{.TableNamePluralPascal}}(pagedInfo)
+  pagedInfo = resp.pagedInfo
+  records = resp.records
+}
+
+function create() {
+  router.push({ name: '{{.TableNameCamel}}Create' })
+}
+
+function edit({{.TableNameCamel}}Ulid: string) {
+  router.push({ name: '{{.TableNamePascal}}Edit', params: { ulid: {{.TableNameCamel}}Ulid } })
+}
+
+function sort(fieldName: string, direction: string) {
+  let pi = pagedInfo
+  pi.orderBy = fieldName
+  switch (direction) {
+    case 'asc':
+      pi.direction = PagedInfo.Direction.ASC
+      break
+    case 'desc':
+      pi.direction = PagedInfo.Direction.DESC
+      break
+    default:
+      pi.direction = PagedInfo.Direction.NONE
+      break
+  }
+  changePageInfo(pi)
+}
+
+function pageChange(pagenum: number) {
+  let pi = pagedInfo
+  pi.pageNumber = pagenum
+  changePageInfo(pi)
+}
+
+watch(
+  () => route,
+  route => {
+    if (route.path.includes('{{.TableNameCamel}}s')) {
+      loadData()
+    }
+  },
+  { flush: 'pre', immediate: true, deep: true }
+)
+{{.LTStr}}/script{{.GTStr}}

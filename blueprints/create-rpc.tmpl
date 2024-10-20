@@ -21,8 +21,7 @@ func NewServer(datastore *datastore.Datastore) TwirpServer {
 }
 
 func (s *{{.TableNamePascal}}Server) Save{{.TableNamePascal}}(ctx context.Context, {{.TableNameCamel}} *{{.TableNamePascal}}) (*{{.TableNamePascal}}, error) {
-	siteUlid := ctx.Value("site_ulid").(string)
-	err := s.{{.TableNameCamel}}Helper.Save(siteUlid, {{.TableNameCamel}})
+	err := s.{{.TableNameCamel}}Helper.Save(ctx, {{.TableNameCamel}})
 	if err != nil {
 		return nil, twirp.InternalError(err.Error())
 	}
@@ -30,17 +29,26 @@ func (s *{{.TableNamePascal}}Server) Save{{.TableNamePascal}}(ctx context.Contex
 }
 
 func (s *{{.TableNamePascal}}Server) Load{{.TableNamePascal}}(ctx context.Context, lookup *base.Lookup) (*{{.TableNamePascal}}, error) {
-	siteUlid := ctx.Value("site_ulid").(string)
-	{{.TableNameCamel}}, err := s.{{.TableNameCamel}}Helper.Load(siteUlid, lookup.Ulid)
+	{{.TableNameCamel}}, err := s.{{.TableNameCamel}}Helper.Load(ctx, lookup.Ulid)
 	if err != nil {
 		return nil, twirp.InternalError(err.Error())
 	}
 	return {{.TableNameCamel}}, err
 }
 
+
+func (s *{{.TableNamePascal}}Server) Load{{.TableNamePluralPascal}}(ctx context.Context, lookup *base.Lookup) (*{{.TableNamePluralPascal}}, error) {
+	{{.TableNamePluralCamel}}, err := s.{{.TableNameCamel}}Helper.All(ctx, siteUlid)
+	if err != nil {
+		return nil, twirp.InternalError(err.Error())
+	}
+	return &{{.TableNamePluralPascal}}{
+		{{.TableNamePluralPascal}}: {{.TableNamePluralCamel}},
+	}, err
+}
+
 func (s *{{.TableNamePascal}}Server) Paged{{.TableNamePluralPascal}}(ctx context.Context, pagedInfo *base.PagedInfo) (*{{.TableNamePluralPascal}}Paged, error) {
-	siteUlid := ctx.Value("site_ulid").(string)
-	pagedData, err := s.{{.TableNameCamel}}Helper.PagedBy(siteUlid, pagedInfo.PageNumber, pagedInfo.Limit, pagedInfo.OrderBy, pagedInfo.Direction.String(), pagedInfo.Search)
+	pagedData, err := s.{{.TableNameCamel}}Helper.PagedBy(ctx, pagedInfo.PageNumber, pagedInfo.Limit, pagedInfo.OrderBy, pagedInfo.Direction.String(), pagedInfo.Search)
 	if err != nil {
 		return nil, twirp.NewError(twirp.Malformed, err.Error())
 	}	
@@ -48,8 +56,7 @@ func (s *{{.TableNamePascal}}Server) Paged{{.TableNamePluralPascal}}(ctx context
 }
 
 func (s *{{.TableNamePascal}}Server) Delete{{.TableNamePascal}}(ctx context.Context, lookup *base.Lookup) (*base.Deleted, error) {
-	siteUlid := ctx.Value("site_ulid").(string)
-	isDeleted, err := s.{{.TableNameCamel}}Helper.Delete(siteUlid, lookup.Ulid)
+	isDeleted, err := s.{{.TableNameCamel}}Helper.Delete(ctx, lookup.Ulid)
 	if err != nil {
 		return nil, twirp.InternalError(err.Error())
 	}

@@ -1,0 +1,52 @@
+{{$global := .}}{{.LTStr}}template{{.GTStr}}
+  <with-actions :title="pageTitle" ref="popover" :actions="actions" @closed="$router.push({ name: '{{.TableNameCamel}}List' })" class="p-4">
+    <multi-edit-line v-for="(record, i) in records" :record="record" :key="record.{{.TableNamePascal}}Ulid" />
+    <b-button @click="add">Add</b-button>
+    <loading :on="['Load']" />
+  </with-actions>
+{{.LTStr}}/template{{.GTStr}}
+
+{{.LTStr}}script lang="ts" setup{{.GTStr}}
+import {{.TableNameCamel}}Api from '@/api/{{.TableNameCamel}}'
+import { {{.TableNamePascal}} } from '@/api/pb/{{.TableNameCamel}}.pb'
+import { watch, type Ref } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import MultiEditLine from './{{.TableNamePascal}}MultiEditLine.vue'
+
+const route = useRoute()
+const router = useRouter()
+let records: {{.TableNamePascal}}[] = $ref([])
+
+const pageTitle = $computed(() => {
+  return `Edit {{.TableNamePluralPascal}}`
+})
+const actions = $computed(() => {
+  return [
+    {
+      name: 'Create {{.TableNameCamel}}',
+      iconLeft: 'far-heart',
+      action: () => {
+        create()
+      },
+    },
+  ]
+})
+
+async function loadData() {
+  records = await {{.TableNameCamel}}Api.load{{.TableNamePluralPascal}}({ulid: ''})
+}
+
+async function add() {
+  records.push({{.TableNameCamel}}Api.create{{.TableNamePascal}}())
+}
+
+watch(
+  () => route,
+  route => {
+    if (route.path.includes('{{.TableNamePluralCamel}}')) {
+      loadData()
+    }
+  },
+  { flush: 'pre', immediate: true, deep: true }
+)
+{{.LTStr}}/script{{.GTStr}}
