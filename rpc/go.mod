@@ -10,6 +10,7 @@ replace github.com/nerdynz/datastore => ../../../nerdynz/datastore
 
 require (
 	github.com/go-zoo/bone v1.3.0
+	github.com/jinzhu/copier v0.4.0
 	github.com/lmittmann/tint v1.0.5
 	github.com/nerdynz/datastore v0.0.0-20210404043820-fca6c2b865be
 	github.com/nerdynz/fileupload v1.0.1
@@ -24,7 +25,9 @@ require (
 	github.com/unrolled/render v1.7.0
 	github.com/urfave/negroni v1.0.0
 	golang.org/x/exp v0.0.0-20220722155223-a9213eeb770e
+	golang.org/x/net v0.14.0
 	google.golang.org/protobuf v1.28.0
+	rogchap.com/v8go v0.9.0
 )
 
 require (
@@ -49,7 +52,6 @@ require (
 	github.com/shomali11/xredis v0.0.0-20190608143638-0b54a6bbf40b // indirect
 	github.com/simukti/sqldb-logger v0.0.0-20230108155151-646c1a075551 // indirect
 	golang.org/x/crypto v0.17.0 // indirect
-	golang.org/x/net v0.14.0 // indirect
 	golang.org/x/sync v0.1.0 // indirect
 	golang.org/x/sys v0.15.0 // indirect
 	golang.org/x/text v0.14.0 // indirect

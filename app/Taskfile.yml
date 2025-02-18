@@ -1,0 +1,20 @@
+version: '3'
+
+interval: 200ms
+
+tasks:
+  default:
+    cmds:
+      - task _dev
+
+  _dev:
+    deps: [go-watch, sass-watch]
+
+  sass-watch:
+    dir: '$GOPATH/src/github.com/nerdynz/skeleton/scribe'
+    watch: true
+
+    sources:
+      - 'src/main.scss'
+    cmds:
+      - 'sass --load-path=node_modules ./src/main.scss ./src/assets/main.css'

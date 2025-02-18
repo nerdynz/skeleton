@@ -1,0 +1,52 @@
+syntax = "proto3";
+
+package skeleton;
+option go_package = "github.com/nerdynz/skeleton/rpc/page";
+
+import "base.proto";
+import "block.proto";
+
+service PageRPC {
+	rpc LoadPage(skeleton.Lookup) returns (Page);
+	rpc LoadFullPage(skeleton.Lookup) returns (PageWithBlockWithImage);
+	rpc SavePage(Page) returns (Page);
+	rpc SaveFullPage(PageWithBlockWithImage) returns (PageWithBlockWithImage);
+	rpc PagedPages(skeleton.PagedInfo) returns (PagesPaged);
+	rpc DeletePage(skeleton.Lookup) returns (skeleton.Deleted);
+}
+
+message Page {
+	string page_ulid = 1; // @gotags: db:"page_ulid"
+	string title = 2; // @gotags: db:"title"
+	string summary = 3; // @gotags: db:"summary"
+	string date_created = 4; // @gotags: db:"date_created"
+	string date_modified = 5; // @gotags: db:"date_modified"
+	string site_ulid = 6; // @gotags: db:"site_ulid"
+	string slug = 7; // @gotags: db:"slug"
+}
+
+message PageWithBlockWithImage {
+	string page_ulid = 1;
+	string title = 2;
+	string summary = 3;
+	string date_created = 4;
+	string date_modified = 5;
+	string site_ulid = 6; 
+	string slug = 7;
+	repeated NavLink mainNav = 8;
+	repeated BlockWithImage blocks = 9;
+}
+
+message Pages {
+	repeated Page pages = 1;
+}
+
+message NavLink {
+	string slug = 1;
+	string title = 2;
+}
+
+message PagesPaged {
+	skeleton.PagedInfo pagedInfo = 1;
+	repeated Page records = 2;
+}

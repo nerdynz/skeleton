@@ -1,0 +1,38 @@
+syntax = "proto3";
+
+package skeleton;
+option go_package = "github.com/nerdynz/skeleton/rpc/image";
+
+import "base.proto";
+
+service ImageRPC {
+	rpc LoadImage(skeleton.Lookup) returns (Image);
+	rpc SaveImage(Image) returns (Image);
+	rpc PagedImages(skeleton.PagedInfo) returns (ImagesPaged);
+	rpc DeleteImage(skeleton.Lookup) returns (skeleton.Deleted);
+}
+
+message Image {
+	string image_ulid = 1; // @gotags: db:"image_ulid"
+	string image = 2; // @gotags: db:"image"
+	double original_height = 3; // @gotags: db:"original_height"
+	double original_width = 4; // @gotags: db:"original_width"
+	double top = 5; // @gotags: db:"top"
+	double left = 6; // @gotags: db:"left"
+	double scale = 7; // @gotags: db:"scale"
+	double crop_height = 8; // @gotags: db:"crop_height"
+	double crop_width = 9; // @gotags: db:"crop_width"
+	string site_ulid = 10; // @gotags: db:"site_ulid"
+	string date_created = 11; // @gotags: db:"date_created"
+	string date_modified = 12; // @gotags: db:"date_modified"
+	bool is_processed = 13; // @gotags: db:"is_processed"
+}
+
+message Images {
+	repeated Image images = 1;
+}
+
+message ImagesPaged {
+	skeleton.PagedInfo pagedInfo = 1;
+	repeated Image records = 2;
+}

@@ -1,0 +1,59 @@
+package page
+
+import (
+	"context"
+
+	"github.com/nerdynz/datastore"
+	base "github.com/nerdynz/skeleton/rpc/base"
+	twirp "github.com/twitchtv/twirp"
+)
+
+type PageServer struct {
+	datastore  *datastore.Datastore
+	pageHelper *PageHelper
+}
+
+func NewServer(datastore *datastore.Datastore) TwirpServer {
+	return NewPageRPCServer(&PageServer{
+		datastore:  datastore,
+		pageHelper: newPageHelper(datastore),
+	})
+}
+
+func (s *PageServer) SavePage(ctx context.Context, page *Page) (*Page, error) {
+	siteUlid := ctx.Value("site_ulid").(string)
+	err := s.pageHelper.Save(siteUlid, page)
+	if err != nil {
+		return nil, twirp.InternalError(err.Error())
+	}
+	return page, nil
+}
+
+func (s *PageServer) LoadPage(ctx context.Context, lookup *base.Lookup) (*Page, error) {
+	siteUlid := ctx.Value("site_ulid").(string)
+	page, err := s.pageHelper.Load(siteUlid, lookup.Ulid)
+	if err != nil {
+		return nil, twirp.InternalError(err.Error())
+	}
+	return page, err
+}
+
+func (s *PageServer) PagedPages(ctx context.Context, pagedInfo *base.PagedInfo) (*PagesPaged, error) {
+	siteUlid := ctx.Value("site_ulid").(string)
+	pagedData, err := s.pageHelper.PagedBy(siteUlid, pagedInfo.PageNumber, pagedInfo.Limit, pagedInfo.OrderBy, pagedInfo.Direction.String(), pagedInfo.Search)
+	if err != nil {
+		return nil, twirp.NewError(twirp.Malformed, err.Error())
+	}
+	return pagedData, nil
+}
+
+func (s *PageServer) DeletePage(ctx context.Context, lookup *base.Lookup) (*base.Deleted, error) {
+	siteUlid := ctx.Value("site_ulid").(string)
+	isDeleted, err := s.pageHelper.Delete(siteUlid, lookup.Ulid)
+	if err != nil {
+		return nil, twirp.InternalError(err.Error())
+	}
+	return &base.Deleted{
+		IsDeleted: isDeleted,
+	}, nil
+}

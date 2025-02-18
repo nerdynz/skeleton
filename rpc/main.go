@@ -68,9 +68,9 @@ func main() {
 	cache := rcache.New(settings.Get("CACHE_URL"), logrus.StandardLogger())
 
 	store = datastore.New(settings, cache, nil)
-	sseSrv := NewSseServer()
-	store.Publisher = sseSrv
-	defer sseSrv.Close()
+	// sseSrv := NewSseServer()
+	// store.Publisher = sseSrv
+	// defer sseSrv.Close()
 
 	// rclient := redisv9.NewUniversalClient(&redisv9.UniversalOptions{
 	// 	Addrs:        []string{"localhost:6379"},
@@ -95,13 +95,14 @@ func main() {
 	// routes := Routes(store, client.New(b))
 
 	routes := Routes(store)
-	routes.HandleFunc("/events", sseSrv.sseServer.HTTPHandler)
+	// routes.HandleFunc("/events", sseSrv.sseServer.HTTPHandler)
 
 	// Start diagnostic server under /diag
 	// routes.Handle("/diag/", http.StripPrefix("/diag", diag.NewServeMux(b)))
 	n.UseHandler(routes)
-	http.ListenAndServe(":"+settings.GetWithDefault("DEVELOPMENT_PORT", "8080"), n)
-
+	port := ":" + settings.GetWithDefault("DEVELOPMENT_PORT", "8080")
+	slog.Info("ListenAndServe", "port", port)
+	http.ListenAndServe(port, n)
 	// cancel()
 	// if err := w.WaitForCompletion(); err != nil {
 	// 	logrus.Info("could not stop worker", err)

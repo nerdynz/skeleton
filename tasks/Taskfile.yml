@@ -1,77 +1,96 @@
 version: '3'
 
 tasks:
-  default: 
-    cmds: 
+  default:
+    cmds:
       - task _dev
 
-  _dev: 
-    deps: [go-watch, frontend, sass-watch]
+  _dev:
+    deps: [go-watch, frontend]
 
-
-  frontend: 
-    dir: 
-      '$GOPATH/src/github.com/nerdynz/skeleton/spa'
+  frontend:
+    dir: '$GOPATH/src/github.com/nerdynz/skeleton/client'
     cmds:
-      - bun dev
+      - pnpm dev
 
-  go-watch: 
-    dir: 
-      '$GOPATH/src/github.com/nerdynz/skeleton/rpc'
+  go-watch:
+    dir: '$GOPATH/src/github.com/nerdynz/skeleton/rpc'
     cmds:
       - dotenvx run -f .env -- air
 
-  sass-watch: 
-    dir: 
-      '$GOPATH/src/github.com/nerdynz/skeleton/spa'
-    cmds: 
-      - "sass --load-path=node_modules base.scss ./src/assets/base.css --watch"
+  sass:
+    dir: '$GOPATH/src/github.com/nerdynz/skeleton/client'
+    cmds:
+      - 'sass ./src/styles/main.scss ./src/styles/main.css --watch'
+
+  sass-build:
+    dir: '$GOPATH/src/github.com/nerdynz/skeleton/client'
+    cmds:
+      - 'sass ./src/styles/main.scss ./src/styles/main.css'
+
+  build-fe:
+    summary: Builds the client
+    dir: '$GOPATH/src/github.com/nerdynz/skeleton/client'
+    cmds:
+      - pnpm build
+      - task build-touch
+
+  build-touch:
+    summary: Builds the client
+    dir: '$GOPATH/src/github.com/nerdynz/skeleton'
+    cmds:
+      - find rpc/assets -maxdepth 1 -type f -delete;
+      - find rpc/dist/frontend/client/assets -type f -exec mv {} rpc/assets/ \;
+      - find rpc/dist/frontend/server/assets -type f -exec mv {} rpc/assets/ \;
+      - date +"%Y-%m-%d %H:%M:%S" > rpc/dist/touchfile.txt
 
   # db:
-  #   dir: 
+  #   dir:
   #     '$GOPATH/src/github.com/nerdynz/skeleton'
   #   cmds:
   #     - fly proxy 5432 -a cliq-pg
 
   vendor:
-    dir: 
-      '$GOPATH/src/github.com/nerdynz/skeleton/rpc'
+    dir: '$GOPATH/src/github.com/nerdynz/skeleton/rpc'
     cmds:
       - go mod vendor
 
   unvendor:
-    dir: 
-      '$GOPATH/src/github.com/nerdynz/skeleton/rpc'
+    dir: '$GOPATH/src/github.com/nerdynz/skeleton/rpc'
     cmds:
       - rm -r vendor
 
   deploy:
-    dir: 
-      '$GOPATH/src/github.com/nerdynz/skeleton'
+    dir: '$GOPATH/src/github.com/nerdynz/skeleton'
     cmds:
       - task: build-fe
       - task: vendor
       - fly deploy
       - task: unvendor
 
-  build-fe:
-    dir: 
-      '$GOPATH/src/github.com/nerdynz/skeleton/spa'
+  # build-fe:
+  #   dir:
+  #     '$GOPATH/src/github.com/nerdynz/skeleton/spa'
+  #   cmds:
+  #     - pnpm build
+  #     - rm -r ../assets
+  #     - mv dist/assets ../assets
+  #     - mv dist/index.html ../rpc/templates/spa.html
+
+  sass-watch:
+    dir: '$GOPATH/src/github.com/nerdynz/skeleton/client'
     cmds:
-      - pnpm build
-      - rm -r ../assets
-      - mv dist/assets ../assets
-      - mv dist/index.html ../rpc/templates/spa.html
+      - 'sass --load-path=node_modules base.scss ./src/assets/base.css --watch'
 
-  build-bulma: 
-    cmds: 
-      - "sass sass/main.scss public/css/main.css"
+  sass-content:
+    dir: '$GOPATH/src/github.com/nerdynz/skeleton/content'
+    cmds:
+      - 'sass --load-path=node_modules base.scss ./src/assets/base.css'
 
-  icons: 
-    cmds: 
-    - "svg-sprite -s --symbol-dest=public --symbol-render-css-dest=sprite --symbol-bust icons/*.svg"
+  icons:
+    cmds:
+      - 'svg-sprite -s --symbol-dest=public --symbol-render-css-dest=sprite --symbol-bust icons/*.svg'
 
-  pdf: 
-    cmds: 
-    - "jeevesrpcpdf"
-  
+  pdf:
+    cmds:
+      - 'jeevesrpcpdf'

@@ -1,0 +1,59 @@
+package image
+
+import (
+	"context"
+
+	"github.com/nerdynz/datastore"
+	base "github.com/nerdynz/skeleton/rpc/base"
+	twirp "github.com/twitchtv/twirp"
+)
+
+type ImageServer struct {
+	datastore   *datastore.Datastore
+	imageHelper *ImageHelper
+}
+
+func NewServer(datastore *datastore.Datastore) TwirpServer {
+	return NewImageRPCServer(&ImageServer{
+		datastore:   datastore,
+		imageHelper: NewImageHelper(datastore),
+	})
+}
+
+func (s *ImageServer) SaveImage(ctx context.Context, image *Image) (*Image, error) {
+	siteUlid := ctx.Value("site_ulid").(string)
+	err := s.imageHelper.Save(siteUlid, image)
+	if err != nil {
+		return nil, twirp.InternalError(err.Error())
+	}
+	return image, nil
+}
+
+func (s *ImageServer) LoadImage(ctx context.Context, lookup *base.Lookup) (*Image, error) {
+	siteUlid := ctx.Value("site_ulid").(string)
+	image, err := s.imageHelper.Load(siteUlid, lookup.Ulid)
+	if err != nil {
+		return nil, twirp.InternalError(err.Error())
+	}
+	return image, err
+}
+
+func (s *ImageServer) PagedImages(ctx context.Context, pagedInfo *base.PagedInfo) (*ImagesPaged, error) {
+	siteUlid := ctx.Value("site_ulid").(string)
+	pagedData, err := s.imageHelper.PagedBy(siteUlid, pagedInfo.PageNumber, pagedInfo.Limit, pagedInfo.OrderBy, pagedInfo.Direction.String(), pagedInfo.Search)
+	if err != nil {
+		return nil, twirp.NewError(twirp.Malformed, err.Error())
+	}
+	return pagedData, nil
+}
+
+func (s *ImageServer) DeleteImage(ctx context.Context, lookup *base.Lookup) (*base.Deleted, error) {
+	siteUlid := ctx.Value("site_ulid").(string)
+	isDeleted, err := s.imageHelper.Delete(siteUlid, lookup.Ulid)
+	if err != nil {
+		return nil, twirp.InternalError(err.Error())
+	}
+	return &base.Deleted{
+		IsDeleted: isDeleted,
+	}, nil
+}

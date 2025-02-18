@@ -3,7 +3,9 @@ package main
 import (
 	"embed"
 	"errors"
+	"log/slog"
 	"net/http"
+	"os"
 
 	"github.com/go-zoo/bone"
 	"github.com/nerdynz/datastore"
@@ -11,6 +13,8 @@ import (
 	"github.com/nerdynz/router"
 	"github.com/nerdynz/security"
 	"github.com/nerdynz/skeleton/rpc/access"
+	"github.com/nerdynz/skeleton/rpc/page"
+	"github.com/nerdynz/skeleton/rpc/ssr"
 
 	"github.com/unrolled/render"
 )
@@ -18,11 +22,20 @@ import (
 //go:embed templates
 var templates embed.FS
 
+//go:embed all:dist
+var dist embed.FS
+
 func Routes(store *datastore.Datastore) *bone.Mux {
+
 	// func Routes(store *datastore.Datastore, w *wclient.Client) *bone.Mux {
 	key := &Key{
 		Store: store,
 	}
+
+	// fsysStatic, _ := fs.Sub(static, "static")
+	// fsysFrontend, err := fs.Sub(dist, "frontend/client")
+
+	// fsysServer, _ := fs.Sub(dist, "frontend/server")
 
 	var renderer = render.New(render.Options{
 		Layout:     "application",
@@ -42,28 +55,31 @@ func Routes(store *datastore.Datastore) *bone.Mux {
 	// Scaffold routes
 
 	accessTwirp := access.NewServer(store, key)
+	pageTwirp := page.NewRpcServer(store)
 	// personTwirp := person.NewServer(store)
 
 	// The generated code includes a method, PathPrefix(), which
 	// can be used to mount your service on a mux.
 	r.Mux.Handle(accessTwirp.PathPrefix(), accessTwirp)
+	r.Mux.Handle(pageTwirp.PathPrefix(), pageTwirp)
+
+	ssr, err := ssr.NewRenderer(dist)
+	if err != nil {
+		slog.Error("failed to setup ssr renderer", "err", err)
+		os.Exit(1)
+	}
 
 	r.GET("/robots.txt", robots, security.NoAuth)
 
-	r.GET("/:a/:b/:c/:d/:e/:f/:g/:h", spa, security.NoAuth)
-	r.GET("/:a/:b/:c/:d/:e/:f/:g", spa, security.NoAuth)
-	r.GET("/:a/:b/:c/:d/:e/:f", spa, security.NoAuth)
-	r.GET("/:a/:b/:c/:d/:e", spa, security.NoAuth)
-	r.GET("/:a/:b/:c/:d", spa, security.NoAuth)
-	r.GET("/:a/:b/:c", spa, security.NoAuth)
-	r.GET("/:a/:b", spa, security.NoAuth)
-	r.GET("/:a", spa, security.NoAuth)
-	r.GET("/", spa, security.NoAuth)
+	r.GET("/metadata", ssr.Metadata, security.NoAuth)
+	r.GET("/page/:slug", ssr.JSON, security.NoAuth)
+	r.GET("/:slug", ssr.Handle, security.NoAuth)
+	r.GET("/", ssr.Handle, security.NoAuth)
 
 	// IMAGE HANDLING
 	r.POST("/upload/image", uploadImage, security.NoAuth)
 
-	r.Mux.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("./static"))))
+	r.Mux.Handle("/assets/", http.StripPrefix("/assets/", http.FileServer(http.Dir("./assets"))))
 
 	return r.Mux
 }

@@ -1,0 +1,57 @@
+syntax = "proto3";
+
+package cliq;
+option go_package = "github.com/nerdynz/skeleton/rpc/access";
+
+service Access {
+  rpc Login(UnauthorisedUser) returns (SessionInfo);
+  rpc ValidSites(SitesQuery) returns (Sites);
+  rpc Logout(InvalidateUser) returns (InvalidateSuccess);
+}
+
+message SitesQuery {
+	string email = 1;
+}
+
+message UnauthorisedUser {
+  string email = 1;
+  string password = 2;
+  string site_ulid = 3;
+}
+
+message SessionInfo {
+	SessionUser  user = 1;
+	string        token = 2;
+  int32     expiration = 3;
+	repeated Site       sites = 4;
+}
+
+message SessionUser {
+	string username  = 1;
+	string name      = 2;
+	string email     = 3;
+	string password  = 4;
+	string role      = 5;
+	string picture   = 6;
+	string initials  = 7;
+	string ulid      = 8;
+	string site_ulid  = 9;
+}
+
+message Site {
+	string name = 1;
+	string site_ulid = 2;
+}
+
+message Sites {
+	repeated Site sites = 1;
+}
+
+message InvalidateUser {
+  string email = 1;
+  string site_ulid = 2;
+}
+
+message InvalidateSuccess {
+	bool is_success = 1;
+}

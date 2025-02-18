@@ -1,0 +1,93 @@
+<template>
+<div class="animation-button field has-addons">
+  <div class="control">
+    <button class="button is-static is-small">Animation</button>
+  </div>
+  <div class="control">
+    <div class="select is-small">
+      <select name="animation" id="" @change="(e) => {change(e)}" :value="value">
+          <option value="">Select an animation</option>
+          <optgroup label="Fade">
+            <option value="fade-up">Fade Up</option>
+            <option value="fade-down">Fade Down</option>
+            <option value="fade-left">Fade Left</option>
+            <option value="fade-right">Fade Right</option>
+            <option value="fade-up-right">Fade Up Right</option>
+            <option value="fade-up-left">Fade Up Left</option>
+            <option value="fade-down-right">Fade Down Right</option>
+            <option value="fade-down-left">Fade Down Left</option>
+          </optgroup>
+          <optgroup label="Flip">
+            <option value="flip-left">Flip Left</option>
+            <option value="flip-right">Flip Right</option>
+            <option value="flip-up">Flip Up</option>
+            <option value="flip-down">Flip Down</option>
+          </optgroup>
+          <optgroup label="Zoom">
+            <option value="zoom-in">Zoom In</option>
+            <option value="zoom-in-up">Zoom In Up</option>
+            <option value="zoom-in-down">Zoom In Down</option>
+            <option value="zoom-in-left">Zoom In Left</option>
+            <option value="zoom-in-right">Zoom In Right</option>
+            <option value="zoom-out">Zoom Out</option>
+            <option value="zoom-out-up">Zoom Out Up</option>
+            <option value="zoom-out-down">Zoom Out Down</option>
+            <option value="zoom-out-right">Zoom Out Right</option>
+            <option value="zoom-out-left">Zoom Out Left</option>
+          </optgroup>
+      </select>
+    </div>
+  </div>
+</div>
+</template>
+
+<script lang="ts">
+// ... imports
+
+export default {
+  // COMPONENT
+  // ______________________________________
+  name: 'AnimationSelector',
+  components: {},
+  mixins: [
+  ],
+  props: {
+    value: String
+  },
+  computed: {},
+  methods: {
+    change (e) {
+      this.$emit('input', e.target.value)
+    }
+
+  },
+  watch: {},
+  data () {
+    return {
+    }
+  },
+
+  // LIFECYCLE METHODS
+  // ______________________________________
+  beforeCreate () {
+  },
+  created () {
+  },
+  beforeMount () {
+  },
+  mounted () {
+  },
+  beforeUpdate () {
+  },
+  updated () {
+  },
+  beforeDestroy () {
+  },
+  destroyed () {
+  }
+}
+</script>
+
+<style lang="scss">
+
+</style>

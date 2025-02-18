@@ -1,0 +1,65 @@
+syntax = "proto3";
+
+package skeleton;
+option go_package = "github.com/nerdynz/skeleton/rpc/block";
+
+import "base.proto";
+import "image.proto";
+
+service BlockRPC {
+	rpc LoadBlock(skeleton.Lookup) returns (Block);
+	rpc SaveBlock(Block) returns (Block);
+	rpc PagedBlocks(skeleton.PagedInfo) returns (BlocksPaged);
+	rpc DeleteBlock(skeleton.Lookup) returns (skeleton.Deleted);
+}
+
+message Block {
+	string block_ulid = 1; // @gotags: db:"block_ulid"
+	string title = 2; // @gotags: db:"title"
+	string kind = 3; // @gotags: db:"kind"
+	string content_one_html = 4; // @gotags: db:"content_one_html"
+	string content_two_html = 5; // @gotags: db:"content_two_html"
+	string content_three_html = 6; // @gotags: db:"content_three_html"
+	string content_four_html = 7; // @gotags: db:"content_four_html"
+	string image_one_ulid = 8; // @gotags: db:"image_one_ulid"
+	string image_two_ulid = 10; // @gotags: db:"image_two_ulid"
+	string image_three_ulid = 12; // @gotags: db:"image_three_ulid"
+	string image_four_ulid = 14; // @gotags: db:"image_four_ulid"
+	string date_created = 16; // @gotags: db:"date_created"
+	string date_modified = 17; // @gotags: db:"date_modified"
+	string page_ulid = 18; // @gotags: db:"page_ulid"
+	string site_ulid = 19; // @gotags: db:"site_ulid"
+	int32 sort_position = 20; // @gotags: db:"sort_position"
+}
+
+message BlockWithImage {
+	string block_ulid = 1;
+	string title = 2;
+	string kind = 3;
+	string content_one_html = 4;
+	string content_two_html = 5;
+	string content_three_html = 6;
+	string content_four_html = 7;
+	skeleton.Image image_one = 9;
+	skeleton.Image image_two = 11;
+	skeleton.Image image_three = 13;
+	skeleton.Image image_four = 15;
+	string date_created = 16;
+	string date_modified = 17;
+	string page_ulid = 18;
+	string site_ulid = 19;
+	int32 sort_position = 20;
+}
+
+message Blocks {
+	repeated Block blocks = 1;
+}
+
+message BlocksWithImages {
+	repeated BlockWithImage blocks = 1;
+}
+
+message BlocksPaged {
+	skeleton.PagedInfo pagedInfo = 1;
+	repeated Block records = 2;
+}
