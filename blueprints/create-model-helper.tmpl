@@ -16,73 +16,88 @@ import (
 	"github.com/nerdynz/datastore"
 )
 
-var clientHelperGlobal *{{.TableNamePascal}}Helper
+var {{.TableNameCamel}}HelperGlobal *{{.TableNamePascal}}Helper
 
 type {{.TableNamePascal}}Helper struct {
-	ds *datastore.Datastore
-	// fieldNames []string
-	// orderBy    string
+	ds       *datastore.Datastore
+	siteUlid string
+	ctx      context.Context
 }
 
 func New{{.TableNamePascal}}Helper(datastore *datastore.Datastore) *{{.TableNamePascal}}Helper {
-	if clientHelperGlobal == nil {
-		clientHelperGlobal = new{{.TableNamePascal}}Helper(datastore)
+	if {{.TableNameCamel}}HelperGlobal == nil {
+		{{.TableNameCamel}}HelperGlobal = new{{.TableNamePascal}}Helper(datastore)
 	}
-	return clientHelperGlobal
+	return {{.TableNameCamel}}HelperGlobal
 }
 
-func new{{.TableNamePascal}}Helper(datastore *datastore.Datastore) *{{.TableNamePascal}}Helper {
-	helper := &{{.TableNamePascal}}Helper{
+func {{.TableNamePascal}}Helper(ctx context.Context, datastore *datastore.Datastore) *{{.TableNameCamel}}Helper {
+	return new{{.TableNamePascal}}Helper(ctx, datastore)
+}
+
+func new{{.TableNamePascal}}Helper(ctx context.Context, datastore *datastore.Datastore) *{{.TableNameCamel}}Helper {
+	siteUlid := ctx.Value("SiteUlid").(string)
+	helper := &{{.TableNameCamel}}Helper{
 		ds: datastore,
+		siteUlid: siteUlid,
+		ctx:     ctx,
 	}
 	return helper
 }
 
-func (h *{{.TableNamePascal}}Helper) New(siteUlid string) *{{.TableNamePascal}} {
+func (h *{{.TableNameCamel}}Helper) selectFrom() string {
+	return `
+	SELECT 
+		` + strings.Join(h.fieldNames(), ", ") + `
+	FROM 
+		{{.TableName}}
+	`
+}
+
+func (h *{{.TableNameCamel}}Helper) New() *{{.TableNamePascal}} {
 	record := &{{.TableNamePascal}}{}
 	// check DateCreated
 	record.DateCreated = time.Now().Format(time.RFC3339)
-	record.SiteUlid = siteUlid
+	record.SiteUlid = h.siteUlid
 	return record
 }
 
-func (h *{{.TableNamePascal}}Helper) Load(ctx context.Context, ulid string) (*{{.TableNamePascal}}, error) {
-	record, err := h.One(ctx, "where {{.TableUlid}} = $1 and $SITEULID", ulid)
+func (h *{{.TableNameCamel}}Helper) Load(ulid string) (*{{.TableNamePascal}}, error) {
+	record, err := h.One("where {{.TableUlid}} = $1 and $SITEULID", ulid)
 	if err != nil {
 		return nil, err
 	}
 	return record, nil
 }
 
-func (h *{{.TableNamePascal}}Helper) All(ctx context.Context) ([]*{{.TableNamePascal}}, error) {
-	siteUlid := ctx.Value("site_ulid").(string)
+func (h *{{.TableNameCamel}}Helper) All() ([]*{{.TableNamePascal}}, error) {
+	siteUlid := h.ctx.Value("SiteUlid").(string)
 	var records []*{{.TableNamePascal}}
 
 	sql := h.selectFrom()
 	sql += `where site_ulid = $1 order by ` + h.orderBy()
 
-	err := h.ds.Select(ctx, &records, sql, siteUlid)
+	err := h.ds.Select(h.ctx, &records, sql, siteUlid)
 	if err != nil {
 		return nil, err
 	}
 	return records, nil
 }
 
-func (h *{{.TableNamePascal}}Helper) Where(ctx context.Context, sql string, args ...interface{}) ([]*{{.TableNamePascal}}, error) {
+func (h *{{.TableNameCamel}}Helper) Where(sql string, args ...interface{}) ([]*{{.TableNamePascal}}, error) {
 	s := h.selectFrom()
 	s += " " + sql + " "
-	s += ` order by ` + h.orderBy() // NOTE: be careful sql inj
-	s += " limit 1"
+	s += ` order by ` + h.orderBy()
 
-	records, err := h.SQL(ctx, s, args...)
+	records, err := h.SQL(s, args...)
 	if err != nil {
 		return nil, err
 	}
 	return records, nil
 }
 
-func (h *{{.TableNamePascal}}Helper) SQL(ctx context.Context, sql string, args ...interface{}) ([]*{{.TableNamePascal}}, error) {
-	siteUlid := ctx.Value("site_ulid").(string)
+func (h *{{.TableNameCamel}}Helper) SQL(sql string, args ...interface{}) ([]*{{.TableNamePascal}}, error) {
+	siteUlid := h.ctx.Value("SiteUlid").(string)
 
 	if !strings.Contains(sql, "$SITEULID") {
 		return nil, errors.New("No $SITEULID placeholder defined")
@@ -92,20 +107,20 @@ func (h *{{.TableNamePascal}}Helper) SQL(ctx context.Context, sql string, args .
 	if err != nil {
 		return nil, err
 	}
-	err = h.ds.Select(ctx, &records, sql, args...)
+	err = h.ds.Select(h.ctx, &records, sql, args...)
 	if err != nil {
 		return nil, err
 	}
 	return records, nil
 }
 
-func (h *{{.TableNamePascal}}Helper) One(ctx context.Context, sql string, args ...interface{}) (*{{.TableNamePascal}}, error) {
+func (h *{{.TableNameCamel}}Helper) One(sql string, args ...interface{}) (*{{.TableNamePascal}}, error) {
 	s := h.selectFrom()
 	s += " " + sql + " "
 	s += ` order by ` + h.orderBy() // NOTE: be careful sql inj
 	s += " limit 1"
 
-	records, err := h.SQL(ctx, s, args...)
+	records, err := h.SQL(s, args...)
 	if err != nil {
 		return nil, err
 	}
@@ -116,9 +131,7 @@ func (h *{{.TableNamePascal}}Helper) One(ctx context.Context, sql string, args .
 }
 
 
-func (h *{{.TableNamePascal}}Helper) PagedBy(ctx context.Context, pageNum int32, itemsPerPage int32, orderByFieldName string, direction string, searchText string) (*{{.TableNamePluralPascal}}Paged, error) {
-	siteUlid := ctx.Value("site_ulid").(string)
-
+func (h *{{.TableNameCamel}}Helper) PagedBy(pageNum int, itemsPerPage int, orderByFieldName string, direction string, searchText string) (*{{.TableNamePluralPascal}}Paged, error) {
 	if orderByFieldName == "" || orderByFieldName == "default" {
 		// we only want the first field name
 		orderByFieldName = strings.Split(h.orderBy(), ",")[0]
@@ -155,25 +168,16 @@ func (h *{{.TableNamePascal}}Helper) PagedBy(ctx context.Context, pageNum int32,
 	sql += " limit $4 "
 
 	var records []*{{.TableNamePascal}}
-	err := h.ds.Select(ctx, &records, sql, siteUlid, datastore.FormatSearch(searchText), offset, itemsPerPage)
+	err := h.ds.Select(h.ctx, &records, sql, h.siteUlid, datastore.FormatSearch(searchText), offset, itemsPerPage)
 	if err != nil {
 		return nil, err
 	}
-
-	dirEnum := base.PagedInfo_NONE
-	switch strings.ToUpper(direction) {
-	case base.PagedInfo_ASC.String():
-		dirEnum = base.PagedInfo_ASC
-	case base.PagedInfo_DESC.String():
-		dirEnum = base.PagedInfo_DESC
-	}
-
-	count := int32(0)
-	h.ds.One(ctx, &count, `select count({{.TableUlid}}) from {{.TableName}} where site_ulid = $1`, siteUlid)
-	paged := &base.PagedInfo{
+	count := 0
+	h.ds.One(h.ctx, &count, `select count({{.TableUlid}}) from {{.TableName}} where site_ulid = $1`, h.siteUlid)
+	paged := &PagedInfo{
 		PageNumber: pageNum,
 		OrderBy:    orderByFieldName,
-		Direction:  dirEnum,
+		Direction:  PagedInfoDirectionFromStr(direction),
 		Limit:      itemsPerPage,
 		Total:      count,
 		Search:     searchText,
@@ -184,32 +188,54 @@ func (h *{{.TableNamePascal}}Helper) PagedBy(ctx context.Context, pageNum int32,
 	}, nil
 }
 
-func (h *{{.TableNamePascal}}Helper) save(ctx context.Context, record *{{.TableNamePascal}}) error {
-	siteUlid := ctx.Value("site_ulid").(string)
-	err := h.beforeSave(record)
-	if err != nil {
-		return err
+func (h *{{.TableNameCamel}}Helper) Save(record *{{.TableNamePascal}}) error {
+	return h.saveMany([]*{{.TableNamePascal}}{record})
+}
+func (h *{{.TableNameCamel}}Helper) SaveMany(records []*{{.TableNamePascal}}) error {
+	return h.saveMany(records)
+}
+
+func (h *{{.TableNameCamel}}Helper) saveMany(records []*{{.TableNamePascal}}) error {
+	for _, record := range records {
+		err := h.beforeSave(record)
+		if err != nil {
+			return err
+		}
+		if record.SiteUlid != h.siteUlid {
+			return errors.New("*{{.TableNamePascal}} update failed. SITEULID Mismatch")
+		}
 	}
-	if record.SiteUlid != siteUlid {
-		return errors.New("*{{.TableNamePascal}} update failed. SITEULID Mismatch")
+
+	sqlPlaceholders := make([]string, 0)
+	vals := make([]interface{}, 0)
+	for i, record := range records {
+		field := i * {{.ColumnsLength}}
+		sqlPlaceholders = append(sqlPlaceholders, {{.ColumnsSprintfCommaSeperatedPlaceholders}})
+		vals = append(vals, {{.ColumnsRecordPrefixedStrings}})
 	}
 	sql := `
-	INSERT INTO {{.TableName}} ({{.ColumnsCommaSeperated}}) 
-	VALUES ({{.ColumnsCommaSeperatedPlaceholders}})
+	INSERT INTO {{.TableName}} ({{.ColumnsCommaSeperated}})
+	VALUES 
+	` + strings.Join(sqlPlaceholders, ",") + `
 	ON CONFLICT ({{.TableULID}}) 
 	DO UPDATE {{.ColumnsUpsertConflictPairs}}
 	`
-	_, err = h.ds.Exec(ctx, sql, {{.ColumnsRecordPrefixedStrings}})
+	_, err := h.ds.Exec(h.ctx, sql, vals...)
 	if err != nil {
 		return err
 	}
-	err = h.afterSave(record)
-	return err
+	for _, record := range records {
+		err = h.afterSave(record)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
-func (h *{{.TableNamePascal}}Helper) Delete(ctx context.Context, recordUlid string) (bool, error) {
-	siteUlid := ctx.Value("site_ulid").(string)
-	result, err := h.ds.Exec(ctx, `
+func (h *{{.TableNameCamel}}Helper) Delete(recordUlid string) (bool, error) {
+	siteUlid := h.ctx.Value("SiteUlid").(string)
+	result, err := h.ds.Exec(h.ctx, `
 	DELETE FROM {{.TableName}}  
 	WHERE site_ulid=$1 and {{.TableUlid}}=$2
 	`, siteUlid, recordUlid)

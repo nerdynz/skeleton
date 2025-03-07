@@ -22,7 +22,10 @@ func NewServer(datastore *datastore.Datastore, key security.Key) TwirpServer {
 }
 
 func (s *AccessServer) Login(ctx context.Context, req *UnauthorisedUser) (resp *SessionInfo, err error) {
-	padlock := security.NewFromContext(ctx, s.Settings, s.Key)
+	padlock, err := security.NewFromContext(ctx)
+	if err != nil {
+		return nil, err
+	}
 
 	info, err := padlock.LoginToSiteReturningInfo(req.Email, req.Password, req.SiteUlid)
 	if err != nil {
@@ -54,7 +57,10 @@ func (s *AccessServer) Login(ctx context.Context, req *UnauthorisedUser) (resp *
 }
 
 func (s *AccessServer) ValidSites(ctx context.Context, req *SitesQuery) (*Sites, error) {
-	padlock := security.NewFromContext(ctx, s.Settings, s.Key)
+	padlock, err := security.NewFromContext(ctx)
+	if err != nil {
+		return nil, err
+	}
 
 	email := req.Email
 	if email == "" {
@@ -80,7 +86,10 @@ func (s *AccessServer) ValidSites(ctx context.Context, req *SitesQuery) (*Sites,
 }
 
 func (s *AccessServer) Logout(ctx context.Context, req *InvalidateUser) (*InvalidateSuccess, error) {
-	padlock := security.NewFromContext(ctx, s.Settings, s.Key)
+	padlock, err := security.NewFromContext(ctx)
+	if err != nil {
+		return nil, err
+	}
 	success, _ := padlock.Logout()
 	// if err != nil {
 	// 	return nil, twirp.NewError(twirp.Internal, err.Error())
